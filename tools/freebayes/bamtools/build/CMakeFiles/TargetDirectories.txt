@@ -1,0 +1,8 @@
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/api/CMakeFiles/APIHeaders.dir
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/api/CMakeFiles/AlgorithmsHeaders.dir
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/api/CMakeFiles/BamTools.dir
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/api/CMakeFiles/BamTools-static.dir
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/utils/CMakeFiles/BamTools-utils.dir
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/CMakeFiles/SharedHeaders.dir
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/toolkit/CMakeFiles/bamtools_cmd.dir
+/home/gosuzombie/Desktop/pipeline/tools/freebayes/bamtools/build/src/third_party/jsoncpp/CMakeFiles/jsoncpp.dir

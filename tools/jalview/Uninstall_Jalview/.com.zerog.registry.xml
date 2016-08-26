@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registry install_date="2016-05-24 10:46:39" version="1.1" last_modified="2016-05-24 10:46:41">
+	<products>
+		<product name="Jalview" id="fe7d6410-1ed5-11b2-a662-f4777f28dbfc" upgrade_id="fe7d6410-1ed5-11b2-a662-f4777f28dbfc" version="2.9.0.1" copyright="2015" info_url="http://www.jalview.org" support_url="http://www.jalview.org/faq" location="/home/gosuzombie/Jalview" last_modified="2016-05-24 10:46:39">
+		<![CDATA[A powerful desktop application for the creation, editing and analysis of multiple sequence alignments, with support for the interactive visualization of associated phylogenetic trees and associated 2D (via VARNA, http://varna.lri.fr) and 3D (via Jmol, http://www.jmol.org) molecular structure information. Jalview includes clients to access databases provided by EMBL-EBI and via the Distributed Annotation System, and alignment and analysis services provided by JABA (http://www.compbio.dundee.ac.uk/jaba) web server installations. ]]>
+			<vendor name="The Barton Group" id="fe7d640f-1ed5-11b2-a662-f4777f28dbfc" home_page="http://www.jalview.org" email="jalview-discuss@jalview.org"/>
+			<feature short_name="Application" name="Application" last_modified="2016-05-24 10:46:39">
+			<![CDATA[This installs the application feature.]]>
+				<component ref_id="fe7d6496-1ed5-11b2-a66c-f4777f28dbfc" version="1.0.0.0" location="/home/gosuzombie/Jalview/Uninstall_Jalview/Uninstall Jalview"/>
+				<component ref_id="fe7d6496-1ed5-11b2-a66b-f4777f28dbfc" version="1.0.0.0" location="/home/gosuzombie/Jalview/Jalview"/>
+			</feature>
+			<feature short_name="Help" name="Help" last_modified="2016-05-24 10:46:39">
+			<![CDATA[This installs the help feature.]]>
+				<component ref_id="fe7d6496-1ed5-11b2-a66c-f4777f28dbfc" version="1.0.0.0" location="/home/gosuzombie/Jalview/Uninstall_Jalview/Uninstall Jalview"/>
+				<component ref_id="fe7d6496-1ed5-11b2-a66b-f4777f28dbfc" version="1.0.0.0" location="/home/gosuzombie/Jalview/Jalview"/>
+			</feature>
+		</product>
+	</products>
+	<components>
+		<component id="fe7d6496-1ed5-11b2-a66b-f4777f28dbfc" version="1.0.0.0" name="Common" location="/home/gosuzombie/Jalview/Jalview" vendor="The Barton Group">
+			<resource keyfile="false" name="Uninstall_Jalview" location="/home/gosuzombie/Jalview/Uninstall_Jalview" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="jalview.jar" location="/home/gosuzombie/Jalview/jalview.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="lax.jar" location="/home/gosuzombie/Jalview/lax.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="true" name="Jalview" location="/home/gosuzombie/Jalview/Jalview" type="executable" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="Jalview.lax" location="/home/gosuzombie/Jalview/Jalview.lax" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="LICENSE" location="/home/gosuzombie/Jalview/LICENSE" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="README_IA" location="/home/gosuzombie/Jalview/README_IA" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="lib" location="/home/gosuzombie/Jalview/lib" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="activation.jar" location="/home/gosuzombie/Jalview/lib/activation.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="Jmol-14.2.14_2015.06.11.jar" location="/home/gosuzombie/Jalview/lib/Jmol-14.2.14_2015.06.11.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="axis.jar" location="/home/gosuzombie/Jalview/lib/axis.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="commons-discovery.jar" location="/home/gosuzombie/Jalview/lib/commons-discovery.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="commons-logging-1.1.1.jar" location="/home/gosuzombie/Jalview/lib/commons-logging-1.1.1.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jaxrpc.jar" location="/home/gosuzombie/Jalview/lib/jaxrpc.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jhall.jar" location="/home/gosuzombie/Jalview/lib/jhall.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="slf4j-api-1.7.7.jar" location="/home/gosuzombie/Jalview/lib/slf4j-api-1.7.7.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jsoup-1.8.1.jar" location="/home/gosuzombie/Jalview/lib/jsoup-1.8.1.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="log4j-to-slf4j-2.0-rc2.jar" location="/home/gosuzombie/Jalview/lib/log4j-to-slf4j-2.0-rc2.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="slf4j-log4j12-1.7.7.jar" location="/home/gosuzombie/Jalview/lib/slf4j-log4j12-1.7.7.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="mail.jar" location="/home/gosuzombie/Jalview/lib/mail.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regex.jar" location="/home/gosuzombie/Jalview/lib/regex.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="saaj.jar" location="/home/gosuzombie/Jalview/lib/saaj.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="wsdl4j.jar" location="/home/gosuzombie/Jalview/lib/wsdl4j.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="xercesImpl.jar" location="/home/gosuzombie/Jalview/lib/xercesImpl.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="xml-apis.jar" location="/home/gosuzombie/Jalview/lib/xml-apis.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="castor-1.1-cycle-xml.jar" location="/home/gosuzombie/Jalview/lib/castor-1.1-cycle-xml.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="vamsas-client.jar" location="/home/gosuzombie/Jalview/lib/vamsas-client.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="JGoogleAnalytics_0.3.jar" location="/home/gosuzombie/Jalview/lib/JGoogleAnalytics_0.3.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="min-jabaws-client-2.1.0.jar" location="/home/gosuzombie/Jalview/lib/min-jabaws-client-2.1.0.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="httpclient-4.0.3.jar" location="/home/gosuzombie/Jalview/lib/httpclient-4.0.3.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="httpcore-4.0.1.jar" location="/home/gosuzombie/Jalview/lib/httpcore-4.0.1.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="httpmime-4.0.3.jar" location="/home/gosuzombie/Jalview/lib/httpmime-4.0.3.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="apache-mime4j-0.6.jar" location="/home/gosuzombie/Jalview/lib/apache-mime4j-0.6.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="miglayout-4.0-swing.jar" location="/home/gosuzombie/Jalview/lib/miglayout-4.0-swing.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jswingreader-0.3.jar" location="/home/gosuzombie/Jalview/lib/jswingreader-0.3.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="VARNAv3-93.jar" location="/home/gosuzombie/Jalview/lib/VARNAv3-93.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="commons-codec-1.3.jar" location="/home/gosuzombie/Jalview/lib/commons-codec-1.3.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="spring-web-3.0.5.RELEASE.jar" location="/home/gosuzombie/Jalview/lib/spring-web-3.0.5.RELEASE.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jdas-1.0.4.jar" location="/home/gosuzombie/Jalview/lib/jdas-1.0.4.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="groovy-all-1.8.2.jar" location="/home/gosuzombie/Jalview/lib/groovy-all-1.8.2.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="spring-core-3.0.5.RELEASE.jar" location="/home/gosuzombie/Jalview/lib/spring-core-3.0.5.RELEASE.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jfreesvg-2.1.jar" location="/home/gosuzombie/Jalview/lib/jfreesvg-2.1.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="json_simple-1.1.jar" location="/home/gosuzombie/Jalview/lib/json_simple-1.1.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="quaqua-filechooser-only-8.0.jar" location="/home/gosuzombie/Jalview/lib/quaqua-filechooser-only-8.0.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jersey-client-1.19.jar" location="/home/gosuzombie/Jalview/lib/jersey-client-1.19.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jersey-core-1.19.jar" location="/home/gosuzombie/Jalview/lib/jersey-core-1.19.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jersey-json-1.19.jar" location="/home/gosuzombie/Jalview/lib/jersey-json-1.19.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="java-json.jar" location="/home/gosuzombie/Jalview/lib/java-json.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jsr311-api-1.1.1.jar" location="/home/gosuzombie/Jalview/lib/jsr311-api-1.1.1.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jetty-http-9.2.10.v20150310.jar" location="/home/gosuzombie/Jalview/lib/jetty-http-9.2.10.v20150310.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jetty-io-9.2.10.v20150310.jar" location="/home/gosuzombie/Jalview/lib/jetty-io-9.2.10.v20150310.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jetty-server-9.2.10.v20150310.jar" location="/home/gosuzombie/Jalview/lib/jetty-server-9.2.10.v20150310.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jetty-util-9.2.10.v20150310.jar" location="/home/gosuzombie/Jalview/lib/jetty-util-9.2.10.v20150310.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="examples" location="/home/gosuzombie/Jalview/examples" type="directory" uninstall="false" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="jpred_msa.seq.concise" location="/home/gosuzombie/Jalview/examples/jpred_msa.seq.concise" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="groovy" location="/home/gosuzombie/Jalview/examples/groovy" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[true]]>
+			</resource>
+			<resource keyfile="false" name="alignLoadedFile.groovy" location="/home/gosuzombie/Jalview/examples/groovy/alignLoadedFile.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="annotationsascsv.groovy" location="/home/gosuzombie/Jalview/examples/groovy/annotationsascsv.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="parseproperties.groovy" location="/home/gosuzombie/Jalview/examples/groovy/parseproperties.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="selectColumnsByFeatureAndGroup.groovy" location="/home/gosuzombie/Jalview/examples/groovy/selectColumnsByFeatureAndGroup.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="JvLoadTester.groovy" location="/home/gosuzombie/Jalview/examples/groovy/JvLoadTester.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="JvLoadTestHarness.groovy" location="/home/gosuzombie/Jalview/examples/groovy/JvLoadTestHarness.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="removeFeaturesByGroup.groovy" location="/home/gosuzombie/Jalview/examples/groovy/removeFeaturesByGroup.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="closures.groovy" location="/home/gosuzombie/Jalview/examples/groovy/closures.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="stripUniprotPrefixes.groovy" location="/home/gosuzombie/Jalview/examples/groovy/stripUniprotPrefixes.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="printtitle.groovy" location="/home/gosuzombie/Jalview/examples/groovy/printtitle.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="iterateOverAlignments.groovy" location="/home/gosuzombie/Jalview/examples/groovy/iterateOverAlignments.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="sitesForSelectedColumns.groovy" location="/home/gosuzombie/Jalview/examples/groovy/sitesForSelectedColumns.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="annotationForSelectedSequence.groovy" location="/home/gosuzombie/Jalview/examples/groovy/annotationForSelectedSequence.groovy" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jpred_msa.fasta" location="/home/gosuzombie/Jalview/examples/jpred_msa.fasta" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="plantfdx.annotations" location="/home/gosuzombie/Jalview/examples/plantfdx.annotations" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="plantfdx.fa" location="/home/gosuzombie/Jalview/examples/plantfdx.fa" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="exampleFile_2_7.jar" location="/home/gosuzombie/Jalview/examples/exampleFile_2_7.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="1gaq.txt" location="/home/gosuzombie/Jalview/examples/1gaq.txt" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="uniref50.fa" location="/home/gosuzombie/Jalview/examples/uniref50.fa" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="plantfdx.features" location="/home/gosuzombie/Jalview/examples/plantfdx.features" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="exampleFeatures.txt" location="/home/gosuzombie/Jalview/examples/exampleFeatures.txt" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="uniref50_mz.fa" location="/home/gosuzombie/Jalview/examples/uniref50_mz.fa" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ferredoxin.nw" location="/home/gosuzombie/Jalview/examples/ferredoxin.nw" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="RF00031_folded.stk" location="/home/gosuzombie/Jalview/examples/RF00031_folded.stk" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="building.html" location="/home/gosuzombie/Jalview/building.html" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="THIRDPARTYLIBS" location="/home/gosuzombie/Jalview/THIRDPARTYLIBS" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="AUTHORS" location="/home/gosuzombie/Jalview/AUTHORS" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+		</component>
+		<component id="fe7d6496-1ed5-11b2-a66c-f4777f28dbfc" version="1.0.0.0" name="InstallAnywhere Uninstall Component" location="/home/gosuzombie/Jalview/Uninstall_Jalview/Uninstall Jalview" vendor="The Barton Group">
+			<resource keyfile="false" name="Jalview" location="/home/gosuzombie/Jalview" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="Uninstall_Jalview" location="/home/gosuzombie/Jalview/Uninstall_Jalview" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="uninstaller.jar" location="/home/gosuzombie/Jalview/Uninstall_Jalview/uninstaller.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="fe7d640f-1ed5-11b2-a662-f4777f28dbfc_c5bc7c96-1f0c-11b2-ab7a-e722731676a6.swidtag" location="/home/gosuzombie/Jalview/fe7d640f-1ed5-11b2-a662-f4777f28dbfc_c5bc7c96-1f0c-11b2-ab7a-e722731676a6.swidtag" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name=".com.zerog.registry.xml" location="/home/gosuzombie/Jalview/Uninstall_Jalview/.com.zerog.registry.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+		</component>
+	</components>
+</registry>

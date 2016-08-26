@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<swid:software_identification_tag
+    xmlns:swid="http://standards.iso.org/iso/19770/-2/2009/schema.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.iso.org/iso/19770/-2/2009/schema.xsd http://standards.iso.org/iso/19770/-2/2009/schema.xsd">
+    <!-- Mandatory elements -->
+    <swid:entitlement_required_indicator id="entitlement_required_indicator">false</swid:entitlement_required_indicator>
+    <swid:product_title id="product_title">Jalview</swid:product_title>
+    <swid:product_version>
+        <swid:name id="version_name">2.9.0.1</swid:name>
+        <swid:numeric>
+            <swid:major id="version_major">2</swid:major>
+            <swid:minor id="version_minor">9</swid:minor>
+            <swid:build id="version_build">0</swid:build>
+            <swid:review id="version_review">1</swid:review>
+        </swid:numeric>
+    </swid:product_version>
+    <swid:software_creator>
+        <swid:name id="creator_name">The Barton Group</swid:name>
+        <swid:regid id="creator_regid">fe7d640f-1ed5-11b2-a662-f4777f28dbfc</swid:regid>
+    </swid:software_creator>
+    <swid:software_licensor>
+        <swid:name id="licensor_name">The Barton Group</swid:name>
+        <swid:regid id="licensor_regid">fe7d640f-1ed5-11b2-a662-f4777f28dbfc</swid:regid>
+    </swid:software_licensor>
+    <swid:software_id>
+        <swid:unique_id id="unique_id">c5bc7c96-1f0c-11b2-ab7a-e722731676a6</swid:unique_id>
+        <swid:tag_creator_regid id="tag_creator_regid">fe7d640f-1ed5-11b2-a662-f4777f28dbfc</swid:tag_creator_regid>
+    </swid:software_id>
+    <swid:tag_creator>
+        <swid:name id="tag_name">The Barton Group</swid:name>
+        <swid:regid id="tag_regid">fe7d640f-1ed5-11b2-a662-f4777f28dbfc</swid:regid>
+    </swid:tag_creator>
+    <swid:product_id id="product_id">c5bc7c97-1f0c-11b2-ab7a-e722731676a6</swid:product_id>
+    <!-- Extended Information -->
+    <swid:extended_information
+        xmlns:fs="http://www.flexerasoftware.com/swid/2011/arp"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.flexerasoftware.com/swid/2011/arp http://www.flexerasoftware.com/swid/2011/arp">
+        <fs:original_arp_guid>fe7d6410-1ed5-11b2-a662-f4777f28dbfc</fs:original_arp_guid>
+        <fs:original_arp_publisher>The Barton Group</fs:original_arp_publisher>
+        <fs:original_arp_display_name>Jalview</fs:original_arp_display_name>
+        <fs:original_arp_display_version>2.9.0.1</fs:original_arp_display_version>
+        <fs:current_arp_guid/>
+        <fs:current_arp_publisher/>
+        <fs:current_arp_display_name/>
+        <fs:current_arp_display_version/>
+    </swid:extended_information>
+</swid:software_identification_tag>

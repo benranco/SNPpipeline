@@ -1,0 +1,56 @@
+The Jalview Desktop relies on a number of third-party libraries.
+These can be found in the lib directory, with additional compile
+time dependencies in the utils directory.
+
+A number of sources have also been adapted for incorporation into Jalview's source tree
+
+ext.edu.ucsf.rbvi.strucviz2 includes sources originally developed by Scooter Morris and Nadezhda Doncheva for the Cytoscape StructureViz2 plugin. It is released under the Berkley license and we hereby acknowledge its original copyright is held by the UCSF Computer Graphics Laboratory
+ and the software was developed with support by the NIH National Center for Research Resources, grant P41-RR01081. 
+
+Licencing information for each library is given below:
+
+JGoogleAnalytics_0.3.jar	APL 2.0 License - http://code.google.com/p/jgoogleanalytics/
+Jmol-14.2.14_2015.06.11.jar	GPL/LGPLv2 http://sourceforge.net/projects/jmol/files/
+VARNAv3-93.jar GPL licenced software by K�vin Darty, Alain Denise and Yann Ponty. http://varna.lri.fr
+activation.jar	
+apache-mime4j-0.6.jar
+axis.jar
+castor-1.1-cycle-xml.jar
+commons-codec-1.3.jar
+commons-discovery.jar
+commons-logging-1.1.1.jar
+commons-logging.jar
+commons-net-3.3.jar
+httpclient-4.0.3.jar
+httpcore-4.0.1.jar
+httpmime-4.0.3.jar
+jaxrpc.jar
+jdas-1.0.4.jar : Apache License - built from http://code.google.com/p/jdas/ (29th Feb 2012)
+jhall.jar
+jswingreader-0.3.jar : Apache license - built from http://jswingreader.sourceforge.net/ svn/trunk v12
+log4j-1.2.8.jar
+mail.jar
+miglayout-4.0-swing.jar	BSD http://www.migcalendar.com/miglayout/versions/4.0/license.txt
+min-jaba-client.jar
+regex.jar
+saaj.jar
+spring-core-3.0.5.RELEASE.jar : Apache License: jdas runtime dependencies retrieved via maven
+spring-web-3.0.5.RELEASE.jar : Apache License: jdas runtime dependencies retrieved via maven
+vamsas-client.jar
+wsdl4j.jar
+xercesImpl.jar
+xml-apis.jar
+json_simple-1.1.jar : Apache 2.0 license : downloaded from https://code.google.com/p/json-simple/downloads/list (will move to 1.1.1 version when jalview is mavenised and osgi-ised)
+jfreesvg-2.1.jar : GPL v3 licensed library from the JFree suite: http://www.jfree.org/jfreesvg/
+
+quaqua: v.8.0 (latest stable) by Randel S Hofer. LGPL and BSD Modified license: downloaded from http://www.randelshofer.ch/quaqua/ 
+
+Additional dependencies
+
+examples/javascript/deployJava.js : http://java.com/js/deployJava.js
+examples/javascript/jquery*.js : BSD license
+examples/javascript/jshashtable-2.1.js : Apache License
+
+Tools not bundled with Jalview source
+jbake (http://jbake.org MIT license) was used to build the JalviewLite examples pages found in the examples directory.
+

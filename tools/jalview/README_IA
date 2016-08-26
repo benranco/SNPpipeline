@@ -1,0 +1,30 @@
+Jalview Readme
+--------------
+
+
+##################
+
+To run application:
+
+java -Djava.ext.dirs=JALVIEW_HOME/lib -jar JALVIEW_HOME/jalview.jar [-help ... ]
+
+Replace JALVIEW_HOME with the full path to Jalview Installation Directory.
+Use -help to see the available command line arguments.
+
+For best results use a Sun java run time environment (not the gcj gnu java, sorry!). 
+
+If you want to the java runtime bundled with Jalview, then launch jalview like this:
+
+JAVA_HOME=JALVIEW_HOME/jre JALVIEW_HOME/jre/bin/java -Djava.ext.dirs=JALVIEW_HOME/lib -jar JALVIEW_HOME/jalview.jar 
+
+Please Note: the -jar jalview.jar option launches the jalview.bin.Jalview class in the jalview.jar
+##################
+
+
+If you use a proxy server add 
+
+-Dhttp.proxyServer=YOUR.SERVER -Dhttp.proxyPort=YOURPORT
+
+If the proxy server requires authentication, add
+
+-Dhttp.proxyUser=USERNAME -Dhttp.proxyPassword=PASSWORD
