@@ -194,7 +194,10 @@ write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cu
 message("generate probability values")
 
 reportd <- reportc 
-for(x in (s-1):ncol(reportd))
+
+startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s)
+
+for(x in startingCol:ncol(reportd))
 {
   if(colnames(reportd)[x] == "COMBINED")
   {
@@ -217,12 +220,12 @@ for(x in (s-1):ncol(reportd))
     ind <- NA
     if(!is.na(reportd[y, x]))
     {
-      if(nchar(reportd[y,x] == 2))
+      if(nchar(reportd[y,x]) == 2)
       {
         if(strsplit(reportd[y,x], "")[[1]][1] != reportd[y, "REF"])
         {
           ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr)), grep(reportd[y, "CHROM"], names(rr)))
-          if(!is.na(ind))
+          if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
           {
             reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
           }
@@ -236,14 +239,13 @@ for(x in (s-1):ncol(reportd))
           reportd[y,x] <- 1
         }
       }
-      else
+      else # added check for >= 3 by Ben (may want to add it back, as well as else clause below)
       {
-        ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr)), grep(reportd[y, "CHROM"], names(rr)))
-        
-        if(!is.na(ind))
+        ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr)), grep(reportd[y, "CHROM"], names(rr)))        
+        if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
         {
-          if(strsplit(reportd[y,x], "")[[1]][1] != strsplit(reportd[y,x], "")[[1]][3])
-          {
+          if( (nchar(reportd[y,x]) >= 3) & strsplit(reportd[y,x], "")[[1]][1] != strsplit(reportd[y,x], "")[[1]][3])
+          { # added check for >= 3 by Ben
             reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
           }
           else
@@ -251,7 +253,15 @@ for(x in (s-1):ncol(reportd))
             reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]
           }
         }
+        else # added by Ben
+        {
+          reportd[y, x] <- NA
+        }
       }
+#      else # added by Ben
+#      {
+#        reportd[y, x] <- NA
+#      }
     }
   }
 } 
