@@ -152,16 +152,31 @@ cl <- nrow(reportc)
 while(ct <= cl)
 {
   datap <- reportc[ct, s:ncol(reportc)]
-  va <- sort(-table(as.matrix(datap)))
-  if((va[1] + va[2])/sum(va) > 0.9)
+  va <- sort(table(as.matrix(datap)), decreasing = TRUE)
+  if(length(va) == 1)
   {
-    reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", reportc[ct, s:ncol(reportc)], fixed = TRUE)
-    reportc[ct, s:ncol(reportc)] <- gsub(names(va)[2], "A", reportc[ct, s:ncol(reportc)], fixed = TRUE)
+    reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+  }
+  else if(length(va) > 1 & ((va[1] + va[2])/sum(va) > 0.9))
+  {
+    # if names(va)[2] contains names(va)[1], do the string substitution for names(va)[2] first so as to not mess up occurences of names(va)[2] by replacing names(va)[1] first
+    if(grepl(names(va)[1], names(va)[2]))  
+    {
+      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+    } 
+    # otherwise replace names(va)[1] first
+    else
+    {
+      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+    }
+
     if(length(va) > 2)
     {
       for(a in c(3:length(va)))
       {
-        reportc[ct, s:ncol(reportc)] <- gsub(names(va)[a], NA , reportc[ct, s:ncol(reportc)], fixed = TRUE)
+        reportc[ct, s:ncol(reportc)] <- gsub(names(va)[a], NA , as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
       }
     }
   }
