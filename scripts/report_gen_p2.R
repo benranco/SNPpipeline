@@ -193,7 +193,7 @@ write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cu
 
 message("generate probability values")
 
-reportd <- reportc 
+reportd <- report 
 
 startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s)
 
