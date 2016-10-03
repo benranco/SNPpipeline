@@ -152,12 +152,14 @@ cl <- nrow(reportc)
 while(ct <= cl)
 {
   datap <- reportc[ct, s:ncol(reportc)]
-  va <- sort(table(as.matrix(datap)), decreasing = TRUE)
-  if(length(va) == 1)
+  va <- sort(table(as.matrix(datap), useNA = "ifany"), decreasing = TRUE) # TODO: Check if useNA is what we want here. Ben
+
+  # TODO: What if either of the most frequent values is NA? Do we delete the row? What if there's only two values and one of them is NA? This if statement below will automatically keep the row even if the majority is NA, because NA is not included in va, and therefore is subtracted from the total. I think the table function used above excludes NA's from the factorization/count (I fixed this by adding the useNA parameter in the table function and updating the if statements to include NAs in their calculations, rather than ignoring the NAs and coming up with false calculations because of it).
+  if( va[1]/sum(va) > 0.9 & !is.na(names(va)[1]) ) # TODO: Check if !is.na is what we want here. Ben
   {
     reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
   }
-  else if(length(va) > 1 & ((va[1] + va[2])/sum(va) > 0.9))
+  else if( length(va) > 1 & (va[1]+va[2])/sum(va) > 0.9 & !is.na(names(va)[1]) & !is.na(names(va)[2]) ) # TODO: Check if !is.na is what we want here. Ben
   {
     # if names(va)[2] contains names(va)[1], do the string substitution for names(va)[2] first so as to not mess up occurences of names(va)[2] by replacing names(va)[1] first
     if(grepl(names(va)[1], names(va)[2]))  
