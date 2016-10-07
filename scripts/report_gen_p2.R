@@ -67,7 +67,7 @@ if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23
   
   while(a <= nc)
   {
-    c <- as.matrix(report[a, c(1:rfc) * -1])
+    c <- as.matrix(report[a, c(1:rfc) * -1]) # TODO: This looks like and off-by-one error
     if(sum(is.na(c)) > length(c)%/%2)
     {
       report <- report[-a, ]
@@ -154,7 +154,7 @@ while(ct <= cl)
   datap <- reportc[ct, s:ncol(reportc)]
   va <- sort(table(as.matrix(datap), useNA = "ifany"), decreasing = TRUE) # TODO: Check if useNA is what we want here. Ben
 
-  # TODO: What if either of the most frequent values is NA? Do we delete the row? What if there's only two values and one of them is NA? This if statement below will automatically keep the row even if the majority is NA, because NA is not included in va, and therefore is subtracted from the total. I think the table function used above excludes NA's from the factorization/count (I fixed this by adding the useNA parameter in the table function and updating the if statements to include NAs in their calculations, rather than ignoring the NAs and coming up with false calculations because of it).
+  # TODO: (Fixed, but confirm): What if either of the most frequent values is NA? Do we delete the row? What if there's only two values and one of them is NA? This if statement below will automatically keep the row even if the majority is NA, because NA is not included in va, and therefore is subtracted from the total. I think the table function used above excludes NA's from the factorization/count (I fixed this by adding the useNA parameter in the table function and updating the if statements to include NAs in their calculations, rather than ignoring the NAs and coming up with false calculations because of it).
   if( va[1]/sum(va) > 0.9 & !is.na(names(va)[1]) ) # TODO: Check if !is.na is what we want here. Ben
   {
     reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
