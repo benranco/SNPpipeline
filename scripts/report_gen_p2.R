@@ -29,7 +29,7 @@ library(seqinr)
 message("reading and merging split data")
 for(single1 in list.files(paste0(path, "/reporttemp")))
 {
-  if(grepl("filled.Rds", single1))
+  if(grepl("filled.Rds", single1, fixed=TRUE))
   {
     #message(single1)
     sr <- readRDS(paste0(path, "/reporttemp/", single1))
@@ -105,10 +105,10 @@ if(!("COMBINED" %in% colnames(report)))
 snpp <- as.data.frame(snpp)
 for(a in 1:nrow(report))
 {
-  snpp[a, "A"] <- length(grep("A", as.matrix(report[a, c(s:length(report[a,]))])))
-  snpp[a, "C"] <- length(grep("C", as.matrix(report[a, c(s:length(report[a,]))])))
-  snpp[a, "T"] <- length(grep("T", as.matrix(report[a, c(s:length(report[a,]))])))
-  snpp[a, "G"] <- length(grep("G", as.matrix(report[a, c(s:length(report[a,]))])))
+  snpp[a, "A"] <- length(grep("A", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
+  snpp[a, "C"] <- length(grep("C", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
+  snpp[a, "T"] <- length(grep("T", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
+  snpp[a, "G"] <- length(grep("G", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
   snpp[a, "empty"] <- sum(is.na(as.matrix(report[a, c(s:length(report[a,]))])))
   snpp[a, "max"] <- max(snpp[a, c("A", "C", "T", "G")])
   snpp[a, "second_max"] <- sort(snpp[a, c("A", "C", "T", "G")], TRUE)[2]
@@ -131,9 +131,9 @@ out <- data.frame()
 for(sector in 1:length(names(output)))
 {
   out[attributes(output[[sector]])$name, "role"] <- attributes(output[[sector]])$Annot  
-  out[attributes(output[[sector]])$name, "snp"] <- length(grep(attributes(output[[sector]])$name, report[, "CHROM"]))
+  out[attributes(output[[sector]])$name, "snp"] <- length(grep(attributes(output[[sector]])$name, report[, "CHROM"], fixed=TRUE))
   out[attributes(output[[sector]])$name, "length"] <- nchar(output[[sector]][1])
-  out[attributes(output[[sector]])$name, "percentage SNP"] <- length(grep(attributes(output[[sector]])$name, report[, "CHROM"])) / nchar(output[[sector]][1])
+  out[attributes(output[[sector]])$name, "percentage SNP"] <- length(grep(attributes(output[[sector]])$name, report[, "CHROM"], fixed=TRUE)) / nchar(output[[sector]][1])
 }
 
 out <- out[order(-out$`percentage SNP`), ]
@@ -162,7 +162,7 @@ while(ct <= cl)
   else if( length(va) > 1 & (va[1]+va[2])/sum(va) > 0.9 & !is.na(names(va)[1]) & !is.na(names(va)[2]) ) # TODO: Check if !is.na is what we want here. Ben
   {
     # if names(va)[2] contains names(va)[1], do the string substitution for names(va)[2] first so as to not mess up occurences of names(va)[2] by replacing names(va)[1] first
-    if(grepl(names(va)[1], names(va)[2]))  
+    if(grepl(names(va)[1], names(va)[2], fixed=TRUE))  
     {
       reportc[ct, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
       reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
@@ -206,7 +206,7 @@ for(x in startingCol:ncol(reportd))
   {
     for(cutf in list.files(paste0(path, "/outputTemp/pooled")))
     {
-      if(grepl("cutoff", cutf))
+      if(grepl("cutoff", cutf, fixed=TRUE))
       {
         fil <- paste0(path, "/outputTemp/pooled/", cutf)
       }
