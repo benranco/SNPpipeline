@@ -49,38 +49,38 @@ write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_
 if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23 && !("COMBINED" %in% colnames(report))))
 {
   message("editing for cutoffs")
-  tr <- report
   
-  report <- tr
+  
+  
   report <- as.data.frame(report)
-  nc <- nrow(report)
+  numrows <- nrow(report)
   
   a <- 1
   
   if(!("COMBINED" %in% colnames(report)))
   {
-    rfc <- 4
+    startCol <- 4
   }else
   {
-    rfc <- 5
+    startCol <- 5
   }
   
-  while(a <= nc)
+  while(a <= numrows)
   {
-    c <- as.matrix(report[a, c(1:rfc) * -1]) # TODO: This looks like and off-by-one error
-    if(sum(is.na(c)) > length(c)%/%2)
+    rowData <- as.matrix(report[a,startCol:ncol(report)]) 
+    if(sum(is.na(rowData)) > length(rowData)%/%2)
     {
       report <- report[-a, ]
       a <- a -1
-      nc <- nc - 1
+      numrows <- numrows - 1
     }
     else
     {
-      if((length(unique(as.factor(c))) == 2 && (NA %in% c)) || (length(unique(as.factor(c))) == 1 && !(NA %in% c))) 
+      if((length(unique(as.factor(rowData))) == 2 && (NA %in% rowData)) || (length(unique(as.factor(rowData))) == 1 && !(NA %in% rowData))) 
       {
         report <- report[-a, ]
         a <- a -1
-        nc <- nc - 1
+        numrows <- numrows - 1
       }
     }
     a <- a + 1
