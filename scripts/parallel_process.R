@@ -43,7 +43,7 @@ for(a in 1:nrow(report))
             if(substring(out[2,1], 0 ,1) == "." || substring(out[2,1], 0 ,1) == ",")
             {
               #message("replace")
-              report[a,b] <- paste0(report[a, "REF"], "/")
+              report[a,b] <- paste0(report[a, "REF"], "/", report[a, "REF"])
             }
           }
         }
