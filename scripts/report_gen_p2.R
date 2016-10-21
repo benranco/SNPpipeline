@@ -125,70 +125,70 @@ report <- report[rownames(snpp), ]
 
 message("generating site mutation percentage data")
 
-output <- read.fasta(file = paste0(path, "/reference/formatted_output.fasta"), as.string = TRUE)
-out <- data.frame()
+fastaRef <- read.fasta(file = paste0(path, "/reference/formatted_output.fasta"), as.string = TRUE)
+mutationReport <- data.frame()
 
-for(sector in 1:length(names(output)))
+for(sector in 1:length(names(fastaRef)))
 {
-  out[attributes(output[[sector]])$name, "role"] <- attributes(output[[sector]])$Annot  
-  out[attributes(output[[sector]])$name, "snp"] <- length(grep(attributes(output[[sector]])$name, report[, "CHROM"], fixed=TRUE))
-  out[attributes(output[[sector]])$name, "length"] <- nchar(output[[sector]][1])
-  out[attributes(output[[sector]])$name, "percentage SNP"] <- length(grep(attributes(output[[sector]])$name, report[, "CHROM"], fixed=TRUE)) / nchar(output[[sector]][1])
+  mutationReport[attributes(fastaRef[[sector]])$name, "role"] <- attributes(fastaRef[[sector]])$Annot  
+  mutationReport[attributes(fastaRef[[sector]])$name, "snp"] <- length(grep(attributes(fastaRef[[sector]])$name, report[, "CHROM"], fixed=TRUE))
+  mutationReport[attributes(fastaRef[[sector]])$name, "length"] <- nchar(fastaRef[[sector]][1])
+  mutationReport[attributes(fastaRef[[sector]])$name, "percentage SNP"] <- length(grep(attributes(fastaRef[[sector]])$name, report[, "CHROM"], fixed=TRUE)) / nchar(fastaRef[[sector]][1])
 }
 
-out <- out[order(-out$`percentage SNP`), ]
-out$`percentage SNP` <- out$`percentage SNP` * 100
+mutationReport <- mutationReport[order(-mutationReport$`percentage SNP`), ]
+mutationReport$`percentage SNP` <- mutationReport$`percentage SNP` * 100
 
-write.csv(out, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"))
+write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"))
 
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report.csv", sep = "/"))
 
 message("replacing alleles with characters for chi square test")
 
 reportc <- report
-ct <- 1
-cl <- nrow(reportc)
+curRow <- 1
+totalRows <- nrow(reportc)
 
-while(ct <= cl)
+while(curRow <= totalRows)
 {
-  datap <- reportc[ct, s:ncol(reportc)]
+  datap <- reportc[curRow, s:ncol(reportc)]
   va <- sort(table(as.matrix(datap), useNA = "ifany"), decreasing = TRUE) # TODO: Check if useNA is what we want here. Ben
 
   # TODO: (Fixed, but confirm): What if either of the most frequent values is NA? Do we delete the row? What if there's only two values and one of them is NA? This if statement below will automatically keep the row even if the majority is NA, because NA is not included in va, and therefore is subtracted from the total. I think the table function used above excludes NA's from the factorization/count (I fixed this by adding the useNA parameter in the table function and updating the if statements to include NAs in their calculations, rather than ignoring the NAs and coming up with false calculations because of it).
   if( va[1]/sum(va) > 0.9 & !is.na(names(va)[1]) ) # TODO: Check if !is.na is what we want here. Ben
   {
-    reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+    reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
   }
   else if( length(va) > 1 & (va[1]+va[2])/sum(va) > 0.9 & !is.na(names(va)[1]) & !is.na(names(va)[2]) ) # TODO: Check if !is.na is what we want here. Ben
   {
     # if names(va)[2] contains names(va)[1], do the string substitution for names(va)[2] first so as to not mess up occurences of names(va)[2] by replacing names(va)[1] first
     if(grepl(names(va)[1], names(va)[2], fixed=TRUE))  
     {
-      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
-      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
+      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
     } 
     # otherwise replace names(va)[1] first
     else
     {
-      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
-      reportc[ct, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
+      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
     }
 
     if(length(va) > 2)
     {
       for(a in c(3:length(va)))
       {
-        reportc[ct, s:ncol(reportc)] <- gsub(names(va)[a], NA , as.matrix(reportc[ct, s:ncol(reportc)]), fixed = TRUE)
+        reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[a], NA , as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
       }
     }
   }
   else
   {
-    reportc <- reportc[-ct, ]
-    cl <- cl - 1
-    ct <- ct - 1
+    reportc <- reportc[-curRow, ]
+    totalRows <- totalRows - 1
+    curRow <- curRow - 1
   }
-  ct <- ct + 1
+  curRow <- curRow + 1
 }
 
 write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"))
