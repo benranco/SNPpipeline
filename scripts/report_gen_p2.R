@@ -193,6 +193,7 @@ while(curRow <= totalRows)
 
 write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"))
 
+# #######################################################################
 message("generate probability values")
 
 reportd <- report 
@@ -201,7 +202,7 @@ startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s)
 
 for(x in startingCol:ncol(reportd))
 {
-#  print("------------") # delete this
+  print(paste0("------------col ",x)) 
   if(colnames(reportd)[x] == "COMBINED")
   {
     for(cutf in list.files(paste0(path, "/outputTemp/pooled")))
@@ -232,77 +233,116 @@ for(x in startingCol:ncol(reportd))
     ind <- NA
     if(!is.na(reportd[y, x]))
     {
-      if(nchar(reportd[y,x]) == 2)
+      # The only time two characters occur (other than NA) is the shorthand version of "REF/REF": 
+      # "REF/" (eg. if REF is A, instead of writing A/A, write A/). In this case, since they both match
+      # the REF, set likelihood value to 1. This is actually legacy code, because reports are no longer 
+      # generated with the shorthand "REF/" way.
+      if(nchar(reportd[y,x]) == 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][2] == "/" )
       {
-        if(strsplit(reportd[y,x], "")[[1]][1] != reportd[y, "REF"])
+#        cat("+TWOCHARS MATCH REF") # delete this
+        reportd[y,x] <- 1
+      }
+      # three characters, eg. "A/A" or "A/T".
+      else if(nchar(reportd[y,x]) == 3)  
+      {
+        # Set "ind" to the list of the indices of those row range names which contain both this row's "CHROM"
+        # value and ":<this row's POS value>_". For our purposes, we only care about the first one in the
+        # list if there are more than one. It'll be used to look up the Genotype Likelihood values for the
+        # current cell.
+        # (Using the fixed=TRUE parameter in grep prevents it from evaluating the first string as a regular
+        # expression - important, because it would cause problems for special characters otherwise).
+        # (Using the value=FALSE parameter in grep makes it return the integer indices of matching elements,
+        # rather than the elements themselves. It's the default, but it doesn't hurt to be specific). 
+        ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))
+
+        if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
         {
-          # Set "ind" to the list of the indices of those row range names which contain both this row's "CHROM"
-          # value and ":<this row's POS value>_". For our purposes, we only care about the first one in the
-          # list if there are more than one. It'll be used to look up the Genotype Likelihood values for the
-          # current cell.
-          # (Using the fixed=TRUE parameter in grep prevents it from evaluating the first string as a regular
-          # expression - important, because it would cause problems for special characters otherwise).
-          # (Using the value=FALSE parameter in grep makes it return the integer indices of matching elements,
-          # rather than the elements themselves. It's the default, but it doesn't hurt to be specific). 
-          ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))
-          if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
+          # if the 1st and 3rd match each other:
+          if(strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3] )
           {
-            # set the cell to 10 ^ (the 2nd of 3 genotype likelihoods in the vcf “_cutoff” file's $GENO$GL[index] record). See  http://samtools.github.io/hts-specs/VCFv4.1.pdf, section 1.4.2, page 5 for info on GL.
-            reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
+            # if they match the REF:
+            if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
+            {
+              # (GL position 1)
+#              cat(paste0(". 1stGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]))  # delete this
+              reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
+              # TODO: Not yet sure if I just want to set it to 1 automatically here, but if so, 
+              # use this code instead:
+              #cat("*THREECHARS BOTH MATCH REF") # delete this
+              #reportd[y,x] <- 1
+            }
+            # if they DON'T match the REF:
+            else 
+            {
+              # Check the Genotype (GT) to determine which GL position to use
+              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1/1" ) # "1/1" means GL position 3
+              {
+#                cat(paste0(". 3rdGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]))  # delete this
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]
+              }
+              else # "2/2" means GL position 6
+              {
+#                cat(paste0(". 6thGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][6]))  # delete this
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][6]
+              }
+            }
+          }     
+          # if the 1st and 3rd DON'T match each other:
+          else
+          {
+            # if the first character matches the REF:
+            if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
+            {
+              # Check the Genotype (GT) todetermine which GL position to use
+              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "0/1" ) # "0/1" means GL position 2
+              {
+#                cat(paste0(". 2ndGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]))  # delete this
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
+              }
+              else # "0/2" means GL position 4
+              {
+#                cat(paste0(". 4thGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][4]))  # delete this
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][4]
+              }
+            }
+            # if the first character DOESN'T match match the REF:
+            else 
+            {
+              # it must be GL position 5 (only possible for triallelic sites)
+#              cat(paste0(". 5thGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][5]))  # delete this
+              reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][5]
+            }
+          }
+        }
+        else # if ind is NA or null or has no value
+        {
+          # if the 1st and 3rd character match each other and match the REF
+          if( strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3])
+          {
+#            cat("_THREECHARS BOTH MATCH REF NO VCF VALUE") # delete this
+            reportd[y,x] <- 1
           }
           else
           {
+#            cat("_THREE CHARS NO MATCH REF NO VCF VAL") # delete this
             reportd[y, x] <- NA
           }
         }
-        else
-        {
-#          cat("+") # delete this
-          reportd[y,x] <- 1
-        }
-      }
-# TODO: To be uncommented if this is required and correct. (see TODO below). I must first make sure that every time we have a matching sample (eg. G/G) that also matches the REF (eg. G), we can automatically set the cell to 1. Priliminary testing suggests that we can't assume this.
-#      else if( (nchar(reportd[y,x]) >= 3) & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3])
-#      {
-##        cat("*") # delete this
-#        reportd[y,x] <- 1
-#      }
-      else if(nchar(reportd[y,x]) >= 3) # added check for >= 3 by Ben 
+      } # end of 3 character cases
+      else
       {
-        # TODO: If I try setting one of the sample values that was just two characters ("G/") to three characters ("G/G"), the ind below evaluates to null or na. It doesn't do this for samples that are naturally three characters with the 1st and 3rd matching. Should I make an extra conditional to check if 1st and 3rd characters match AND they match the REF, and set the new value to 1 if so? This would replicate what is being done for the two character situation above. I've implemented and tested it above, and commented it out for now until I know for sure that this is what it should do. 
-        ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))     
-        if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
-        {
-          # TODO: Should we have a case for when the first character matches the REF allele but the third doesn't? Or when the third character matches the REF allele but the first doesn't? And a case for when neither match the REF allele? Would these make any difference?
-          if( strsplit(reportd[y,x], "")[[1]][1] != strsplit(reportd[y,x], "")[[1]][3] )
-          { # added check for >= 3 by Ben
-#            cat(paste0(":",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]))  # delete this
-            reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2] # the original setup
-            #TODO: Right now, the way these as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2] are set up, it's always accessing the one that's 0, and raising 10^0 is always 1. I tried switching the 2 and the 3 around. Check to make sure which one is right.
-            #TODO: If we raise 10 ^ (much greater than -320) I think the number is too large, resulting in 0.
-            # Should we be doing 10 ^ at all?
-          }
-          else
-          {
-#            cat(paste0(":",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]))  # delete this
-            reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3] # the original setup
-          }
-        }
-        else # added by Ben
-        {
-#          cat("_") # delete this
-          reportd[y, x] <- NA
-        }
-        
-      }
-      else # added by Ben
-      {
+#        cat("_LEFTOVER NA") # delete this
         reportd[y, x] <- NA
       }
-    }
+
+      # Old Comments:
+      # TODO: If we raise 10 ^ (much greater than -320) I think the number is too large, resulting in 0.
+
+
+    } # end of if(!is.na(reportd[y, x]))
 #    print(paste0(y, ": REF=", reportd[y, "REF"]," sample: ", tmp, ", result: ",reportd[y,x])) # delete this
-  }
-} 
+  } # end for loop (iterating down the rows)
+} # end for loop (iterating across the colums)
 
 write.csv(reportd, paste(paste(path.expand(path), "reports", sep = "/"), "probability.csv", sep = "/"))
 
