@@ -91,6 +91,7 @@ if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23
   message("not enough samples, skipping cutoff editing")
 }
 
+# #######################################################################
 message("finding snp percentage per site")
 if(!("COMBINED" %in% colnames(report)))
 {
@@ -102,14 +103,29 @@ if(!("COMBINED" %in% colnames(report)))
   s <- 5
 }
 
+numColsInReport <- ncol(report)
 snpp <- as.data.frame(snpp)
 for(a in 1:nrow(report))
 {
-  snpp[a, "A"] <- length(grep("A", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
-  snpp[a, "C"] <- length(grep("C", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
-  snpp[a, "T"] <- length(grep("T", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
-  snpp[a, "G"] <- length(grep("G", as.matrix(report[a, c(s:length(report[a,]))]), fixed=TRUE))
-  snpp[a, "empty"] <- sum(is.na(as.matrix(report[a, c(s:length(report[a,]))])))
+  rowAsMatrix <- as.matrix(report[a, s:numColsInReport])
+  factoredGenotypes <- table(rowAsMatrix, useNA = "no")
+  totalAlleleCount <- sum(factoredGenotypes) * 2 # because, for example "A/A" has two alleles, "A/G" has two...
+  snpp[a, "A"] <- 0
+  snpp[a, "C"] <- 0
+  snpp[a, "T"] <- 0
+  snpp[a, "G"] <- 0
+  
+  # count how many times each allele occurs (factoredGenotypes already lists how many times each genotype occurs)
+  for ( type in names(factoredGenotypes) )
+  {
+    charsInType <- strsplit(type, "")[[1]]
+    firstChar <- charsInType[1]
+    thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A", so count it twice if it still happens to be that way
+    snpp[a,firstChar] <- snpp[a,firstChar][[1]] + factoredGenotypes[type][[1]]
+    snpp[a,thirdChar] <- snpp[a,thirdChar][[1]] + factoredGenotypes[type][[1]]
+  }
+
+  snpp[a, "empty"] <- sum(is.na(rowAsMatrix))
   snpp[a, "max"] <- max(snpp[a, c("A", "C", "T", "G")])
   snpp[a, "second_max"] <- sort(snpp[a, c("A", "C", "T", "G")], TRUE)[2]
   snpp[a, "sum"] <- sum(snpp[a, c("A", "C", "T", "G")])
@@ -118,7 +134,6 @@ for(a in 1:nrow(report))
 }
 
 write.csv(snpp, paste(paste(path.expand(path), "reports", sep = "/"), "percentage_snps.csv", sep = "/"))
-
 snpp <- snpp[order(-snpp$MAF), ]
 snpp <- snpp[snpp$MAF >= MAF_CUTOFF,]
 report <- report[rownames(snpp), ]
