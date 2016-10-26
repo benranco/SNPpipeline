@@ -26,6 +26,7 @@ if(!require(VariantAnnotation))
 library(VariantAnnotation)
 library(seqinr)
 
+# #######################################################################
 message("reading and merging split data")
 for(single1 in list.files(paste0(path, "/reporttemp")))
 {
@@ -46,6 +47,7 @@ for(single1 in list.files(paste0(path, "/reporttemp")))
 
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"))
 
+# #######################################################################
 if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23 && !("COMBINED" %in% colnames(report))))
 {
   message("editing for cutoffs")
@@ -134,10 +136,17 @@ for(a in 1:nrow(report))
 }
 
 write.csv(snpp, paste(paste(path.expand(path), "reports", sep = "/"), "percentage_snps.csv", sep = "/"))
+
+# #######################################################################
+message("generating MAF_cutoff_report")
+
 snpp <- snpp[order(-snpp$MAF), ]
 snpp <- snpp[snpp$MAF >= MAF_CUTOFF,]
 report <- report[rownames(snpp), ]
 
+write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report.csv", sep = "/"))
+
+# #######################################################################
 message("generating site mutation percentage data")
 
 fastaRef <- read.fasta(file = paste0(path, "/reference/formatted_output.fasta"), as.string = TRUE)
@@ -155,8 +164,6 @@ mutationReport <- mutationReport[order(-mutationReport$`percentage SNP`), ]
 mutationReport$`percentage SNP` <- mutationReport$`percentage SNP` * 100
 
 write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"))
-
-write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report.csv", sep = "/"))
 
 # #######################################################################
 message("replacing alleles with characters for chi square test")
