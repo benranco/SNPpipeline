@@ -143,51 +143,156 @@ write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), 
 
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report.csv", sep = "/"))
 
+# #######################################################################
 message("replacing alleles with characters for chi square test")
+
+# New logic:
+# remove rows with NA in MORE than 20% of sites
+# calculate occurences of each character (eg. A/A, A/G, G/G = 3 A, 3 G)
+#   if the most frequent character has more than 95% of occurences, remove row
+#   if the second most frequent character has less than 5% of occurences, remove row (TODO: Or do we sum all the minor characters to get 5%, if there's more than one minor character? - I doubt this, because H,A,B encoding only allows for three characters.)
+#   set the heterozygous genotype (eg. G/T) to H, the most frequent homo type to A (eg. G/G), and the second most frequent (if it exists, eg. T/T) to B (if there's a tie in homo type frequency then set the REF/REF one to A)
+#   if there are no heterozygous genotypes, set the most frequent homo type to H and the second most to A (if there's a tie in homo type frequency then set the REF/REF one to H)
+#   set all samples that contain at least one other allele besides the top two to NA (TODO: is this right?)
+
+# TODO: The above logic is fine for biallelic sites, but what about triallelic sites? They would have three
+# possible heterozygous genotypes (REF/ALT1, REF/ALT2, ALT1/ALT2); if I set the most frequently occuring one to
+# H, what do I set the other two to? They would also have three possible homozygous genotypes (REF/REF, ALT1/ALT1, ALT2/ALT2); if I set the most frequently occuring one to A and the second most to B, what do I set the other to?
 
 reportc <- report
 curRow <- 1
 totalRows <- nrow(reportc)
 
+numDataCols <- ncol(reportc) - (s-1)
+
 while(curRow <= totalRows)
 {
   datap <- reportc[curRow, s:ncol(reportc)]
-  va <- sort(table(as.matrix(datap), useNA = "ifany"), decreasing = TRUE) # TODO: Check if useNA is what we want here. Ben
+#  cat(paste0("row ",curRow,": ")) # delete this
+#  cat(paste0("",datap)) # delete this
+#  cat(" :::: ") # delete this
 
-  # TODO: (Fixed, but confirm): What if either of the most frequent values is NA? Do we delete the row? What if there's only two values and one of them is NA? This if statement below will automatically keep the row even if the majority is NA, because NA is not included in va, and therefore is subtracted from the total. I think the table function used above excludes NA's from the factorization/count (I fixed this by adding the useNA parameter in the table function and updating the if statements to include NAs in their calculations, rather than ignoring the NAs and coming up with false calculations because of it).
-  if( va[1]/sum(va) > 0.9 & !is.na(names(va)[1]) ) # TODO: Check if !is.na is what we want here. Ben
+  numNAsInRow <- sum(is.na(datap))
+  if( numNAsInRow/numDataCols > 0.2 ) 
   {
-    reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-  }
-  else if( length(va) > 1 & (va[1]+va[2])/sum(va) > 0.9 & !is.na(names(va)[1]) & !is.na(names(va)[2]) ) # TODO: Check if !is.na is what we want here. Ben
-  {
-    # if names(va)[2] contains names(va)[1], do the string substitution for names(va)[2] first so as to not mess up occurences of names(va)[2] by replacing names(va)[1] first
-    if(grepl(names(va)[1], names(va)[2], fixed=TRUE))  
-    {
-      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-    } 
-    # otherwise replace names(va)[1] first
-    else
-    {
-      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[1], "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-      reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[2], "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-    }
-
-    if(length(va) > 2)
-    {
-      for(a in c(3:length(va)))
-      {
-        reportc[curRow, s:ncol(reportc)] <- gsub(names(va)[a], NA , as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-      }
-    }
-  }
-  else
-  {
+    # Remove the row if it has more than 20% NA's
     reportc <- reportc[-curRow, ]
     totalRows <- totalRows - 1
     curRow <- curRow - 1
+#    print("More than 20% NA, removing row.") # delete this
   }
+  else
+  {
+    va <- sort(table(as.matrix(datap), useNA = "no"), decreasing = TRUE)
+    totalAlleleCount <- sum(va) * 2 # because, for example "A/A" has two alleles, "A/G" has two...
+    alleleSums <- data.frame(A = 0, C = 0, G = 0, T = 0)
+    
+    # count how many times each allele occurs    
+    for ( type in names(va) )
+    {
+      charsInType <- strsplit(type, "")[[1]]
+      firstChar <- charsInType[1]
+      thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A"
+      alleleSums[firstChar] <- alleleSums[firstChar][[1]] + va[type][[1]]
+      alleleSums[thirdChar] <- alleleSums[thirdChar][[1]] + va[type][[1]]
+    }
+    alleleSums <- sort(alleleSums, decreasing = TRUE)
+    
+    if ( alleleSums[1]/totalAlleleCount > 0.95 )
+    {
+      # Remove the row if the most frequent allele occurs more than 95% of the time
+      reportc <- reportc[-curRow, ]
+      totalRows <- totalRows - 1
+      curRow <- curRow - 1
+#      print("Main allele occurs more than 95% of time, removing row.") # delete this
+    }
+    else if ( alleleSums[2]/totalAlleleCount < 0.05 )
+    {
+      # Remove the row if the second most frequent allele occurs less than 5% of the time
+      reportc <- reportc[-curRow, ]
+      totalRows <- totalRows - 1
+      curRow <- curRow - 1
+#      print(paste0("Second allele occurs less than 5% of time, removing row.")) # delete this
+    }
+    
+    HType <- NA
+    AType <- NA
+    BType <- NA
+
+    # figure out which way around the heterozygous genotype should be (eg. "G/T" or "T/G") 
+    # by taking the one with the most occurences (va is sorted by number of occurences)
+    # (most likely only one of them will have any occurences at all)
+    HTypeOpt1 <- paste0(names(alleleSums)[1],"/",names(alleleSums)[2])
+    HTypeOpt2 <- paste0(names(alleleSums)[2],"/",names(alleleSums)[1])
+    HTypeOpt1Frequency <- 0
+    HTypeOpt2Frequency <- 0
+    for (type in names(va))
+    {
+      if (type == HTypeOpt1)
+      {
+        if (is.na(HType)) 
+        { 
+          HType <- HTypeOpt1 
+        }
+        HTypeOpt1Frequency <- va[type]
+      }
+      else if (type == HTypeOpt2)
+      {
+        if (is.na(HType)) 
+        { 
+          HType <- HTypeOpt2
+        }
+        HTypeOpt2Frequency <- va[type]
+      }
+    }
+    # if HTypeOpt1Frequency and HTypeOpt2Frequency are tied, pick the one that starts with the REF
+    if ( HTypeOpt1Frequency > 0 & HTypeOpt1Frequency == HTypeOpt2Frequency )
+    {
+      if ( names(alleleSums)[1] == reportc[curRow, "REF"] )
+      {
+        HType <- HTypeOpt1
+      }
+      else if ( names(alleleSums)[2] == reportc[curRow, "REF"] )
+      {
+        HType <- HTypeOpt2
+      }
+    }
+    
+    firstAlleleIndex <- 1
+    secondAlleleIndex <- 2
+    # if the first two alleles are tied in terms of frequency, choose the one that matches the REF
+    # as the first one.    
+    if ( alleleSums[1] == alleleSums[2] & names(alleleSums)[2] == reportc[curRow, "REF"] ) 
+    {
+      firstAlleleIndex <- 2
+      secondAlleleIndex <- 1
+    }
+    
+    # if there was no heterozygous site containing the two most frequent alleles
+    if (is.na(HType))
+    {
+      HType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
+      AType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
+    }
+    else
+    {
+      AType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
+      BType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
+    }
+    
+#    cat("REF=",reportc[curRow, "REF"]," ") # delete this
+#    print(paste0(":: HType=",HType," AType=",AType," BType=",BType)) # delete this
+
+    reportc[curRow, s:ncol(reportc)] <- gsub(HType, "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
+    reportc[curRow, s:ncol(reportc)] <- gsub(AType, "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
+    if (!is.na(BType))
+    {      
+      reportc[curRow, s:ncol(reportc)] <- gsub(BType, "B", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
+    }
+    # replace all elements consisting of a character followed by a "/" followed by an optional character(s) with NA (i.e. all elements that haven't already been replaced with H, A or B):
+    reportc[curRow, s:ncol(reportc)] <- gsub("^./.*$", NA, as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE) 
+  }
+
   curRow <- curRow + 1
 }
 
