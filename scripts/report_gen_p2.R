@@ -170,7 +170,7 @@ message("generate probability values")
 
 reportd <- report 
 
-startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s)
+startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s) # this makes sure we include the COMBINED col in our for loop if it exists
 
 for(x in startingCol:ncol(reportd))
 {
