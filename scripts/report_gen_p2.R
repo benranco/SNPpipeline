@@ -144,15 +144,23 @@ if(!("COMBINED" %in% colnames(report)))
 
 numColsInReport <- ncol(report)
 snpp <- as.data.frame(snpp)
+numRows <- nrow(snpp)
+
+snpp$A <- integer(numRows)
+snpp$C <- integer(numRows)
+snpp$T <- integer(numRows)
+snpp$G <- integer(numRows)
+snpp$empty <- integer(numRows)
+snpp$max <- integer(numRows)
+snpp$second_max <- integer(numRows)
+snpp$sum <- integer(numRows)
+snpp$MAF <- numeric(numRows)
+
 for(a in 1:nrow(report))
 {
   rowAsMatrix <- as.matrix(report[a, s:numColsInReport])
   factoredGenotypes <- table(rowAsMatrix, useNA = "no")
   totalAlleleCount <- sum(factoredGenotypes) * 2 # because, for example "A/A" has two alleles, "A/G" has two...
-  snpp[a, "A"] <- 0
-  snpp[a, "C"] <- 0
-  snpp[a, "T"] <- 0
-  snpp[a, "G"] <- 0
   
   # count how many times each allele occurs (factoredGenotypes already lists how many times each genotype occurs)
   for ( type in names(factoredGenotypes) )
