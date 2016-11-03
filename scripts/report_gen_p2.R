@@ -81,6 +81,7 @@ isRowNonBiallelic <- function(namesOfGenotypesInRow)
 
 numrows <- nrow(report)
 numColsInReport <- ncol(report)
+rowsToRemove <- NULL
 rowsToRemove <- numeric(numrows)
 
 
@@ -126,7 +127,11 @@ while(reportIndex <= numrows)
   reportIndex <- reportIndex + 1
 }
 
-report <- report[-rowsToRemove, ]
+rowsToRemove <- rowsToRemove[!(rowsToRemove %in% c(0))] # remove all elements containing 0 from rowsToRemove
+if(length(rowsToRemove) > 0) 
+{
+  report <- report[-rowsToRemove[1:length(rowsToRemove)], ]
+}
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "edited_report.csv", sep = "/"))
 
 
