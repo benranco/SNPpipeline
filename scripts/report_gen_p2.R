@@ -48,50 +48,87 @@ for(single1 in list.files(paste0(path, "/reporttemp")))
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"))
 
 # #######################################################################
+message("editing for cutoffs")
+  
+report <- as.data.frame(report)
+
 if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23 && !("COMBINED" %in% colnames(report))))
 {
-  message("editing for cutoffs")
-  
-  
-  
-  report <- as.data.frame(report)
-  numrows <- nrow(report)
-  
-  a <- 1
-  
-  if(!("COMBINED" %in% colnames(report)))
-  {
-    startCol <- 4
-  }else
-  {
-    startCol <- 5
-  }
-  
-  while(a <= numrows)
-  {
-    rowData <- as.matrix(report[a,startCol:ncol(report)]) 
-    if(sum(is.na(rowData)) > length(rowData)%/%2)
-    {
-      report <- report[-a, ]
-      a <- a -1
-      numrows <- numrows - 1
-    }
-    else
-    {
-      if((length(unique(as.factor(rowData))) == 2 && (NA %in% rowData)) || (length(unique(as.factor(rowData))) == 1 && !(NA %in% rowData))) 
-      {
-        report <- report[-a, ]
-        a <- a -1
-        numrows <- numrows - 1
-      }
-    }
-    a <- a + 1
-  }
-  write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "edited_report.csv", sep = "/"))
+  doFullEditingForCutoffs <- TRUE
 }else
 {
-  message("not enough samples, skipping cutoff editing")
+  doFullEditingForCutoffs <- FALSE
+  message("not enough samples for full cutoff editing, just removing non-biallelic rows")
 }
+
+
+isRowNonBiallelic <- function(namesOfGenotypesInRow)
+{
+  alleleIndex <- 1
+  individualAlleles <- character(length(namesOfGenotypesInRow) * 2) # because, for example "A/A" has two alleles, "A/G" has two...
+  for ( type in namesOfGenotypesInRow )
+  {
+    charsInType <- strsplit(type, "")[[1]]
+    individualAlleles[alleleIndex] <- charsInType[1]
+    alleleIndex <- alleleIndex + 1
+    individualAlleles[alleleIndex] <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A"
+    alleleIndex <- alleleIndex + 1
+  }
+  # if there are 3 or more unique alleles in the row, return TRUE, else return FALSE
+  return ( ifelse( length(names(table(individualAlleles, useNA = "no"))) >= 3, TRUE, FALSE ) )
+}
+
+
+numrows <- nrow(report)
+numColsInReport <- ncol(report)
+rowsToRemove <- numeric(numrows)
+
+
+if(!("COMBINED" %in% colnames(report)))
+{
+  startCol <- 4
+}else
+{
+  startCol <- 5
+}
+
+numDataCols <- numColsInReport - (startCol - 1)
+
+reportIndex <- 1
+rowsToRemoveIndex <- 1
+
+while(reportIndex <= numrows)
+{
+  rowData <- as.matrix(report[reportIndex,startCol:numColsInReport]) 
+  tabulatedRowData <- table(rowData, useNA = "no")
+  tabulatedRowDataNames <- names(tabulatedRowData)
+
+  # remove row if there's only one (or 0) type of non-NA data
+  if( length(tabulatedRowDataNames) <= 1 & doFullEditingForCutoffs)
+  {
+    rowsToRemove[rowsToRemoveIndex] <- reportIndex
+    rowsToRemoveIndex <- rowsToRemoveIndex + 1
+  }
+  # remove row if more than half of it's data values are NA
+  else if( sum(tabulatedRowData) < numDataCols %/% 2 & doFullEditingForCutoffs)
+  {
+    rowsToRemove[rowsToRemoveIndex] <- reportIndex
+    rowsToRemoveIndex <- rowsToRemoveIndex + 1
+  }
+  # remove row if it has 3 or more unique alleles (eg. a row with A/A,A/C,C/C is kept, but 
+  # a row with A/A,A/C,C/T is removed). We only keep biallelic data.
+  else if( isRowNonBiallelic(tabulatedRowDataNames) )
+  {
+    rowsToRemove[rowsToRemoveIndex] <- reportIndex
+    rowsToRemoveIndex <- rowsToRemoveIndex + 1
+  }
+
+  reportIndex <- reportIndex + 1
+}
+
+report <- report[-rowsToRemove, ]
+write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "edited_report.csv", sep = "/"))
+
 
 # #######################################################################
 message("finding snp percentage per site")
