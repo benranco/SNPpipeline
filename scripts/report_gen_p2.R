@@ -204,10 +204,14 @@ mutationReport <- data.frame()
 
 for(sector in 1:length(names(fastaRef)))
 {
-  mutationReport[attributes(fastaRef[[sector]])$name, "role"] <- attributes(fastaRef[[sector]])$Annot  
-  mutationReport[attributes(fastaRef[[sector]])$name, "snp"] <- length(grep(attributes(fastaRef[[sector]])$name, report[, "CHROM"], fixed=TRUE))
-  mutationReport[attributes(fastaRef[[sector]])$name, "length"] <- nchar(fastaRef[[sector]][1])
-  mutationReport[attributes(fastaRef[[sector]])$name, "percentage SNP"] <- length(grep(attributes(fastaRef[[sector]])$name, report[, "CHROM"], fixed=TRUE)) / nchar(fastaRef[[sector]][1])
+  sectorName <- attributes(fastaRef[[sector]])$name
+  numRowsForSectorName <- length(grep(sectorName, report[, "CHROM"], fixed=TRUE))
+  numCharsInSequence <- nchar(fastaRef[[sector]][1])
+
+  mutationReport[sectorName, "role"] <- attributes(fastaRef[[sector]])$Annot  
+  mutationReport[sectorName, "snp"] <- numRowsForSectorName
+  mutationReport[sectorName, "length"] <- numCharsInSequence
+  mutationReport[sectorName, "percentage SNP"] <- numRowsForSectorName / numCharsInSequence
 }
 
 mutationReport <- mutationReport[order(-mutationReport$`percentage SNP`), ]
