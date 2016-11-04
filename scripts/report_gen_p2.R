@@ -255,7 +255,6 @@ for(x in startingCol:ncol(reportd))
   rr <- ap$`*:*-*`$rowRanges
   for(y in 1:nrow(reportd))
   {
-#    tmp = reportd[y,x] # delete this
     ind <- NA
     if(!is.na(reportd[y, x]))
     {
@@ -265,7 +264,6 @@ for(x in startingCol:ncol(reportd))
       # generated with the shorthand "REF/" way.
       if(nchar(reportd[y,x]) == 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][2] == "/" )
       {
-#        cat("+TWOCHARS MATCH REF") # delete this
         reportd[y,x] <- 1
       }
       # three characters, eg. "A/A" or "A/T".
@@ -290,11 +288,9 @@ for(x in startingCol:ncol(reportd))
             if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
             {
               # (GL position 1)
-#              cat(paste0(". 1stGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]))  # delete this
               reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
               # TODO: Not yet sure if I just want to set it to 1 automatically here, but if so, 
               # use this code instead:
-              #cat("*THREECHARS BOTH MATCH REF") # delete this
               #reportd[y,x] <- 1
             }
             # if they DON'T match the REF:
@@ -303,12 +299,10 @@ for(x in startingCol:ncol(reportd))
               # Check the Genotype (GT) to determine which GL position to use
               if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1/1" ) # "1/1" means GL position 3
               {
-#                cat(paste0(". 3rdGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]))  # delete this
                 reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]
               }
               else # "2/2" means GL position 6
               {
-#                cat(paste0(". 6thGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][6]))  # delete this
                 reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][6]
               }
             }
@@ -322,12 +316,10 @@ for(x in startingCol:ncol(reportd))
               # Check the Genotype (GT) todetermine which GL position to use
               if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "0/1" ) # "0/1" means GL position 2
               {
-#                cat(paste0(". 2ndGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]))  # delete this
                 reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
               }
               else # "0/2" means GL position 4
               {
-#                cat(paste0(". 4thGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][4]))  # delete this
                 reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][4]
               }
             }
@@ -335,7 +327,6 @@ for(x in startingCol:ncol(reportd))
             else 
             {
               # it must be GL position 5 (only possible for triallelic sites)
-#              cat(paste0(". 5thGLvalue: ",0.0 + as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][5]))  # delete this
               reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][5]
             }
           }
@@ -345,19 +336,16 @@ for(x in startingCol:ncol(reportd))
           # if the 1st and 3rd character match each other and match the REF
           if( strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3])
           {
-#            cat("_THREECHARS BOTH MATCH REF NO VCF VALUE") # delete this
             reportd[y,x] <- 1
           }
           else
           {
-#            cat("_THREE CHARS NO MATCH REF NO VCF VAL") # delete this
             reportd[y, x] <- NA
           }
         }
       } # end of 3 character cases
       else
       {
-#        cat("_LEFTOVER NA") # delete this
         reportd[y, x] <- NA
       }
 
@@ -366,7 +354,6 @@ for(x in startingCol:ncol(reportd))
 
 
     } # end of if(!is.na(reportd[y, x]))
-#    print(paste0(y, ": REF=", reportd[y, "REF"]," sample: ", tmp, ", result: ",reportd[y,x])) # delete this
   } # end for loop (iterating down the rows)
 } # end for loop (iterating across the colums)
 
@@ -397,9 +384,6 @@ numDataCols <- ncol(reportc) - (s-1)
 while(curRow <= totalRows)
 {
   datap <- reportc[curRow, s:ncol(reportc)]
-#  cat(paste0("row ",curRow,": ")) # delete this
-#  cat(paste0("",datap)) # delete this
-#  cat(" :::: ") # delete this
 
   numNAsInRow <- sum(is.na(datap))
   if( numNAsInRow/numDataCols > 0.2 ) 
@@ -408,7 +392,6 @@ while(curRow <= totalRows)
     reportc <- reportc[-curRow, ]
     totalRows <- totalRows - 1
     curRow <- curRow - 1
-#    print("More than 20% NA, removing row.") # delete this
   }
   else
   {
@@ -433,7 +416,6 @@ while(curRow <= totalRows)
       reportc <- reportc[-curRow, ]
       totalRows <- totalRows - 1
       curRow <- curRow - 1
-#      print("Main allele occurs more than 95% of time, removing row.") # delete this
     }
     else if ( alleleSums[2]/totalAlleleCount < 0.05 )
     {
@@ -441,7 +423,6 @@ while(curRow <= totalRows)
       reportc <- reportc[-curRow, ]
       totalRows <- totalRows - 1
       curRow <- curRow - 1
-#      print(paste0("Second allele occurs less than 5% of time, removing row.")) # delete this
     }
     
     HType <- NA
@@ -509,9 +490,6 @@ while(curRow <= totalRows)
       BType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
     }
     
-#    cat("REF=",reportc[curRow, "REF"]," ") # delete this
-#    print(paste0(":: HType=",HType," AType=",AType," BType=",BType)) # delete this
-
     reportc[curRow, s:ncol(reportc)] <- gsub(HType, "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
     reportc[curRow, s:ncol(reportc)] <- gsub(AType, "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
     if (!is.na(BType))
