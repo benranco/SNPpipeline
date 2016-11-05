@@ -19,7 +19,7 @@ if(!("COMBINED" %in% colnames(report)))
 }
 
 increment <- 1
-len <- table(is.na(report))["TRUE"][[1]]
+#len <- table(is.na(report))["TRUE"][[1]]
 
 for(a in 1:nrow(report))
 {
