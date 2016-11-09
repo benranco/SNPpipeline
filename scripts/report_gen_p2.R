@@ -220,146 +220,6 @@ mutationReport$`percentage SNP` <- mutationReport$`percentage SNP` * 100
 write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"))
 
 # #######################################################################
-message("generate probability values")
-
-reportd <- report 
-
-startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s) # this makes sure we include the COMBINED col in our for loop if it exists
-
-for(x in startingCol:ncol(reportd))
-{
-  print(paste0("------------col ",x)) 
-  if(colnames(reportd)[x] == "COMBINED")
-  {
-    for(cutf in list.files(paste0(path, "/outputTemp/pooled")))
-    {
-      if(grepl("cutoff", cutf, fixed=TRUE))
-      {
-        fil <- paste0(path, "/outputTemp/pooled/", cutf)
-      }
-    }
-  }
-  else
-  {
-    fil <- paste0(path, "/outputTemp/single/", substr(colnames(reportd)[x], 0, nchar(colnames(reportd)[x]) - 4), "_cutoff")
-  }
-  # For documentation on the VariantAnnotation packaged used for scanVcf and related operations, see:
-  #     http://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html
-  # For specification of the vcf file format, see:
-  #     https://github.com/samtools/hts-specs (has canonical specifications of VCF format)
-  #     http://www.htslib.org/doc/vcf.html (seems to briefly document the VCF format)
-  # Of particular relevance to the code below, see the descriptions of GT and GL in GENO, section 1.4.2, 
-  # page 5 of:    
-  #     http://samtools.github.io/hts-specs/VCFv4.1.pdf
-  ap <- scanVcf(fil) # import vcf file (see page 35 of http://bioconductor.org/packages/release/bioc/manuals/VariantAnnotation/man/VariantAnnotation.pdf)
-  rr <- ap$`*:*-*`$rowRanges
-  for(y in 1:nrow(reportd))
-  {
-    ind <- NA
-    if(!is.na(reportd[y, x]))
-    {
-      # The only time two characters occur (other than NA) is the shorthand version of "REF/REF": 
-      # "REF/" (eg. if REF is A, instead of writing A/A, write A/). In this case, since they both match
-      # the REF, set likelihood value to 1. This is actually legacy code, because reports are no longer 
-      # generated with the shorthand "REF/" way.
-      if(nchar(reportd[y,x]) == 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][2] == "/" )
-      {
-        reportd[y,x] <- 1
-      }
-      # three characters, eg. "A/A" or "A/T".
-      else if(nchar(reportd[y,x]) == 3)  
-      {
-        # Set "ind" to the list of the indices of those row range names which contain both this row's "CHROM"
-        # value and ":<this row's POS value>_". For our purposes, we only care about the first one in the
-        # list if there are more than one. It'll be used to look up the Genotype Likelihood values for the
-        # current cell.
-        # (Using the fixed=TRUE parameter in grep prevents it from evaluating the first string as a regular
-        # expression - important, because it would cause problems for special characters otherwise).
-        # (Using the value=FALSE parameter in grep makes it return the integer indices of matching elements,
-        # rather than the elements themselves. It's the default, but it doesn't hurt to be specific). 
-        ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))
-
-        if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
-        {
-          # if the 1st and 3rd match each other:
-          if(strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3] )
-          {
-            # if they match the REF:
-            if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
-            {
-              # (GL position 1)
-              reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
-              # TODO: Not yet sure if I just want to set it to 1 automatically here, but if so, 
-              # use this code instead:
-              #reportd[y,x] <- 1
-            }
-            # if they DON'T match the REF:
-            else 
-            {
-              # Check the Genotype (GT) to determine which GL position to use
-              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1/1" ) # "1/1" means GL position 3
-              {
-                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]
-              }
-              else # "2/2" means GL position 6
-              {
-                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][6]
-              }
-            }
-          }     
-          # if the 1st and 3rd DON'T match each other:
-          else
-          {
-            # if the first character matches the REF:
-            if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
-            {
-              # Check the Genotype (GT) todetermine which GL position to use
-              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "0/1" ) # "0/1" means GL position 2
-              {
-                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
-              }
-              else # "0/2" means GL position 4
-              {
-                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][4]
-              }
-            }
-            # if the first character DOESN'T match match the REF:
-            else 
-            {
-              # it must be GL position 5 (only possible for triallelic sites)
-              reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][5]
-            }
-          }
-        }
-        else # if ind is NA or null or has no value
-        {
-          # if the 1st and 3rd character match each other and match the REF
-          if( strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3])
-          {
-            reportd[y,x] <- 1
-          }
-          else
-          {
-            reportd[y, x] <- NA
-          }
-        }
-      } # end of 3 character cases
-      else
-      {
-        reportd[y, x] <- NA
-      }
-
-      # Old Comments:
-      # TODO: If we raise 10 ^ (much greater than -320) I think the number is too large, resulting in 0.
-
-
-    } # end of if(!is.na(reportd[y, x]))
-  } # end for loop (iterating down the rows)
-} # end for loop (iterating across the colums)
-
-write.csv(reportd, paste(paste(path.expand(path), "reports", sep = "/"), "probability.csv", sep = "/"))
-
-# #######################################################################
 message("replacing alleles with characters for chi square test")
 
 # New logic:
@@ -504,5 +364,146 @@ while(curRow <= totalRows)
 }
 
 write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"))
+
+# #######################################################################
+message("generate probability values")
+
+reportd <- report 
+
+startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s) # this makes sure we include the COMBINED col in our for loop if it exists
+
+for(x in startingCol:ncol(reportd))
+{
+  print(paste0("------------col ",x)) 
+  if(colnames(reportd)[x] == "COMBINED")
+  {
+    for(cutf in list.files(paste0(path, "/outputTemp/pooled")))
+    {
+      if(grepl("cutoff", cutf, fixed=TRUE))
+      {
+        fil <- paste0(path, "/outputTemp/pooled/", cutf)
+      }
+    }
+  }
+  else
+  {
+    fil <- paste0(path, "/outputTemp/single/", substr(colnames(reportd)[x], 0, nchar(colnames(reportd)[x]) - 4), "_cutoff")
+  }
+  # For documentation on the VariantAnnotation packaged used for scanVcf and related operations, see:
+  #     http://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html
+  # For specification of the vcf file format, see:
+  #     https://github.com/samtools/hts-specs (has canonical specifications of VCF format)
+  #     http://www.htslib.org/doc/vcf.html (seems to briefly document the VCF format)
+  # Of particular relevance to the code below, see the descriptions of GT and GL in GENO, section 1.4.2, 
+  # page 5 of:    
+  #     http://samtools.github.io/hts-specs/VCFv4.1.pdf
+  ap <- scanVcf(fil) # import vcf file (see page 35 of http://bioconductor.org/packages/release/bioc/manuals/VariantAnnotation/man/VariantAnnotation.pdf)
+  rr <- ap$`*:*-*`$rowRanges
+  for(y in 1:nrow(reportd))
+  {
+    ind <- NA
+    if(!is.na(reportd[y, x]))
+    {
+      # The only time two characters occur (other than NA) is the shorthand version of "REF/REF": 
+      # "REF/" (eg. if REF is A, instead of writing A/A, write A/). In this case, since they both match
+      # the REF, set likelihood value to 1. This is actually legacy code, because reports are no longer 
+      # generated with the shorthand "REF/" way.
+      if(nchar(reportd[y,x]) == 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][2] == "/" )
+      {
+        reportd[y,x] <- 1
+      }
+      # three characters, eg. "A/A" or "A/T".
+      else if(nchar(reportd[y,x]) == 3)  
+      {
+        # Set "ind" to the list of the indices of those row range names which contain both this row's "CHROM"
+        # value and ":<this row's POS value>_". For our purposes, we only care about the first one in the
+        # list if there are more than one. It'll be used to look up the Genotype Likelihood values for the
+        # current cell.
+        # (Using the fixed=TRUE parameter in grep prevents it from evaluating the first string as a regular
+        # expression - important, because it would cause problems for special characters otherwise).
+        # (Using the value=FALSE parameter in grep makes it return the integer indices of matching elements,
+        # rather than the elements themselves. It's the default, but it doesn't hurt to be specific). 
+        ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))
+
+        if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
+        {
+          # if the 1st and 3rd match each other:
+          if(strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3] )
+          {
+            # if they match the REF:
+            if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
+            {
+              # (GL position 1)
+              reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
+              # TODO: Not yet sure if I just want to set it to 1 automatically here, but if so, 
+              # use this code instead:
+              #reportd[y,x] <- 1
+            }
+            # if they DON'T match the REF:
+            else 
+            {
+              # Check the Genotype (GT) to determine which GL position to use
+              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1/1" ) # "1/1" means GL position 3
+              {
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]
+              }
+              else # "2/2" means GL position 6
+              {
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][6]
+              }
+            }
+          }     
+          # if the 1st and 3rd DON'T match each other:
+          else
+          {
+            # if the first character matches the REF:
+            if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
+            {
+              # Check the Genotype (GT) todetermine which GL position to use
+              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "0/1" ) # "0/1" means GL position 2
+              {
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
+              }
+              else # "0/2" means GL position 4
+              {
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][4]
+              }
+            }
+            # if the first character DOESN'T match match the REF:
+            else 
+            {
+              # it must be GL position 5 (only possible for triallelic sites)
+              reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][5]
+            }
+          }
+        }
+        else # if ind is NA or null or has no value
+        {
+          # if the 1st and 3rd character match each other and match the REF
+          if( strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3])
+          {
+            reportd[y,x] <- 1
+          }
+          else
+          {
+            reportd[y, x] <- NA
+          }
+        }
+      } # end of 3 character cases
+      else
+      {
+        reportd[y, x] <- NA
+      }
+
+      # Old Comments:
+      # TODO: If we raise 10 ^ (much greater than -320) I think the number is too large, resulting in 0.
+
+
+    } # end of if(!is.na(reportd[y, x]))
+  } # end for loop (iterating down the rows)
+} # end for loop (iterating across the colums)
+
+write.csv(reportd, paste(paste(path.expand(path), "reports", sep = "/"), "probability.csv", sep = "/"))
+
 
 message("report_gen part 2 complete")
