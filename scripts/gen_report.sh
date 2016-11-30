@@ -11,14 +11,14 @@ echo "running parallel processing"
 
 for f in $(ls ./reporttemp | grep -v "filled.Rds")
 do    
-	if [ $counter -lt $ncore ]; then	
-		Rscript ./scripts/parallel_process.R `pwd` $f &
-		counter=$(( $counter + 1 ))
-	else
+	if [ $counter -ge $ncore ]; then	
 		wait
 		#echo "wait reset"
 		counter=0
 	fi
+
+	Rscript ./scripts/parallel_process.R `pwd` $f &
+	counter=$(( $counter + 1 ))
 done
 wait
 
