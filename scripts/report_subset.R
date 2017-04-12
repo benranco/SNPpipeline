@@ -4,7 +4,6 @@ options(stringsAsFactors = FALSE, warn = 1)
 
 message("generating subset of report")
 report <- read.csv(paste0(path, "/reports/report.csv"))
-report <- report[, -1]
 
 counter <- 1
 filecounter <- 1
