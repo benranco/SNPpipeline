@@ -478,10 +478,10 @@ for(x in startingCol:ncol(reportd))
             if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
             {
               # (GL position 1)
-              reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
-              # TODO: Not yet sure if I just want to set it to 1 automatically here, but if so, 
-              # use this code instead:
-              #reportd[y,x] <- 1
+              reportd[y,x] <- 1
+              # TODO: Not yet sure if I just want to set it to 1 automatically here (as above), but if I 
+              # don't, use this code instead:
+              #reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
             }
             # if they DON'T match the REF:
             else 
