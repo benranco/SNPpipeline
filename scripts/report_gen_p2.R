@@ -366,7 +366,7 @@ while(curRow <= totalRows)
 write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
 
 # #######################################################################
-message("converting the chi square report to .linkage format")
+#message("converting the chi square report to .linkage format")
 
 # Information on .linkage file format (for use with Le-MAP2 software):
 #
@@ -399,13 +399,18 @@ message("converting the chi square report to .linkage format")
 # http://www.jurgott.org/linkage/LinkageUser.pdf
 
 reportLinkageGenotypes <- reportc[ , s:ncol(reportc)]
+reportLinkageGenotypes <- cbind(parent1 = c("A"), parent2 = c("H"), reportLinkageGenotypes) # add two samples to use as parents
+reportLinkageGenotypes <- t(reportLinkageGenotypes) # transpose the report (so it's columns are now rows)
+
 reportLinkageGenotypes[reportLinkageGenotypes=="H"] <- "1 2"
 reportLinkageGenotypes[reportLinkageGenotypes=="A"] <- "1 1"
 reportLinkageGenotypes[reportLinkageGenotypes=="B"] <- "2 2"
 reportLinkageGenotypes[is.na(reportLinkageGenotypes)] <- "0 0"
 reportLinkageGenotypes[reportLinkageGenotypes=="-"] <- "0 0" # in case NA "-" has already been substituted with "-"
 
-reportLinkage <- data.frame(family = reportc$CHROM, id = reportc$POS, fatherId = c(0), motherId = c(0), gender = c(0), affectionStatus = c(0), reportLinkageGenotypes)
+reportLinkage <- cbind(family = c("chi"), id = c(paste0("S",(1:nrow(reportLinkageGenotypes))-2)), fatherId = c("P1"), motherId = c("P2"), gender = c(0), affectionStatus = c(0), reportLinkageGenotypes)
+reportLinkage[1,2:5] <- c("P1","0","0","1") # change id from S-1 to P1, no parents, male
+reportLinkage[2,2:5] <- c("P2","0","0","2") # change id from S0 to P2, no parents, female
 
 write.table(reportLinkage, file= paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.linkage", sep = "/"), append=FALSE, quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
 
