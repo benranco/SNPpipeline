@@ -60,6 +60,6 @@ for(single1 in list.files(paste0(path, "/output", "/single")))
   }
 }
 
-write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "report.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "report.csv", sep = "/"), row.names=FALSE)
 
 message("report_gen completed")

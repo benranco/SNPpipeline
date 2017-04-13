@@ -45,7 +45,7 @@ for(single1 in list.files(paste0(path, "/reporttemp")))
   }
 }
 
-write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"), row.names=FALSE)
 
 # #######################################################################
 message("editing for cutoffs")
@@ -132,7 +132,7 @@ if(length(rowsToRemove) > 0)
 {
   report <- report[-rowsToRemove[1:length(rowsToRemove)], ]
 }
-write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "edited_report.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "edited_report.csv", sep = "/"), row.names=FALSE)
 
 
 # #######################################################################
@@ -185,7 +185,7 @@ for(a in 1:nrow(report))
   #snpp[a, "chi"] <- ((snpp[a,"max"] - snpp[a,"sum"]%/%2)^2)/snpp[a, "sum"]%/%2  + ((snpp[a,"second_max"] - snpp[a,"sum"]%/%2)^2)/snpp[a, "sum"]%/%2 
 }
 
-write.csv(snpp, paste(paste(path.expand(path), "reports", sep = "/"), "percentage_snps.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(snpp, paste(paste(path.expand(path), "reports", sep = "/"), "percentage_snps.csv", sep = "/"), row.names=FALSE)
 
 # #######################################################################
 message("generating MAF_cutoff_report")
@@ -194,7 +194,7 @@ snpp <- snpp[order(-snpp$MAF), ]
 snpp <- snpp[snpp$MAF >= MAF_CUTOFF,]
 report <- report[rownames(snpp), ]
 
-write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report.csv", sep = "/"), row.names=FALSE)
 
 # #######################################################################
 message("generating site mutation percentage data")
@@ -217,7 +217,7 @@ for(sector in 1:length(names(fastaRef)))
 mutationReport <- mutationReport[order(-mutationReport$`percentage SNP`), ]
 mutationReport$`percentage SNP` <- mutationReport$`percentage SNP` * 100
 
-write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"), row.names=FALSE)
 
 # #######################################################################
 message("replacing alleles with characters for chi square test")
@@ -363,7 +363,7 @@ while(curRow <= totalRows)
   curRow <- curRow + 1
 }
 
-write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE)
 
 # #######################################################################
 #message("converting the chi square report to .linkage format")
@@ -552,7 +552,7 @@ for(x in startingCol:ncol(reportd))
   } # end for loop (iterating down the rows)
 } # end for loop (iterating across the colums)
 
-write.csv(reportd, paste(paste(path.expand(path), "reports", sep = "/"), "probability.csv", sep = "/"), row.names=FALSE, col.names=TRUE)
+write.csv(reportd, paste(paste(path.expand(path), "reports", sep = "/"), "probability.csv", sep = "/"), row.names=FALSE)
 
 
 message("report_gen part 2 complete")
