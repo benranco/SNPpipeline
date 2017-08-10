@@ -8,25 +8,25 @@ chmod 555 ./data/*
 
 if [ $3 == 1 ]
 then
-    bash ./scripts/align.sh $1 $5 $7 | tee ./logs/single/$1"_align.log" 2>&1
+    bash ./scripts/align.sh $1 $5 $7 > ./logs/single/$1"_align.log" 2>&1 
 elif [ $3 == 2 ]
 then
-    bash ./scripts/align_all.sh $1 $5 $7 | tee ./logs/pooled/$1"_align.log" 2>&1
+    bash ./scripts/align_all.sh $1 $5 $7 > ./logs/pooled/$1"_align.log" 2>&1
 fi
 
 if [ $3 == 1 ]
 then
-    bash ./scripts/extract.sh $1 $4 $3 $6 | tee ./logs/single/$1"_extract.log" 2>&1
+    bash ./scripts/extract.sh $1 $4 $3 $6 > ./logs/single/$1"_extract.log" 2>&1
 elif [ $3 == 2 ]
 then
-    bash ./scripts/extract.sh $1 $4 $3 $6 | tee ./logs/pooled/$1"_extract.log" 2>&1
+    bash ./scripts/extract.sh $1 $4 $3 $6 > ./logs/pooled/$1"_extract.log" 2>&1
 fi
 
 if [ $3 == 1 ]
 then
-    bash ./scripts/post_process.sh $1 $3 | tee ./logs/single/$1"_post_process.log" 2>&1
+    bash ./scripts/post_process.sh $1 $3 > ./logs/single/$1"_post_process.log" 2>&1
 elif [ $3 == 2 ]
 then
-    bash ./scripts/post_process.sh $1 $3 | tee ./logs/pooled/$1"_post_process.log" 2>&1
+    bash ./scripts/post_process.sh $1 $3 > ./logs/pooled/$1"_post_process.log" 2>&1
 fi
 

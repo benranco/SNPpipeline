@@ -1,6 +1,6 @@
 #!/bin/bash
 #call this pipeline something unique, replace spaces with underlines
-name="isabeldf"
+name="junjun_fluidigm"
 
 #(1) single, (2) pooled, (3) both
 single=1
@@ -12,13 +12,13 @@ email=""
 default=1
 
 #maf cutoff 
-mafcut=0.05
+mafcut=0.3
 
 # paired files (e.g. R1 & R2) vs unpaired files: (1) paired, (0) unpaired
 paired=1
 
 #ploidy values for single and pooled runs: (1) haploid, (2) diploid
-singlep=2
+singlep=1
 pooledp=2
 
 
@@ -72,16 +72,16 @@ if [[ single -eq 1 ]]
 then
     echo "running single"
     if [[ paired -eq 0 ]]; then
-	for datapoint in $(ls "./data"); do
-	    ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
-	    done
+        for datapoint in $(ls "./data"); do
+            ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
+        done
     elif [[ paired -eq 1 ]]; then
-	for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
-	do
-	    ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
-	    #sync
-	    #echo 1 > /proc/sys/vm/drop_caches
-	done
+        for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
+        do
+            ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
+            #sync
+            #echo 1 > /proc/sys/vm/drop_caches
+        done
     fi
 elif [[ single -eq 2 ]]
 then
@@ -93,16 +93,16 @@ then
     ./scripts/args.sh $name $name 2 $pooledp $ncore $default $paired &
     echo "running single"
     if [[ paired -eq 0 ]]; then
-	for datapoint in $(ls "./data"); do
-	    ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired 
-	    done
+        for datapoint in $(ls "./data"); do
+            ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired 
+        done
     elif [[ paired -eq 1 ]]; then
-	for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
-	do
-	    ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired
-	    #sync
-	    #echo 1 > /proc/sys/vm/drop_caches
-	done
+        for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
+        do
+            ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired
+            #sync
+            #echo 1 > /proc/sys/vm/drop_caches
+        done
     fi
     wait
 fi
