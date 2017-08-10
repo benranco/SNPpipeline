@@ -3,7 +3,7 @@ path <- args[1]
 options(stringsAsFactors = FALSE, warn = 1)
 
 message("generating subset of report")
-report <- read.csv(paste0(path, "/reports/report.csv"))
+report <- read.csv(paste0(path, "/reports/report.csv"), check.names=FALSE) # using check.names=FALSE in case the column names have dashes (-) in them. This will prevent them from being converted to periods. However, a column name with a dash in it will not be able to be used as a variable name, so we'll have to refer to columns by their index if accessing them.
 
 counter <- 1
 filecounter <- 1
