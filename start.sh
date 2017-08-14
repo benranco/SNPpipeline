@@ -22,6 +22,20 @@ singlep=1
 pooledp=2
 
 
+# (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
+what_to_run=3
+
+# some optional reports which you might choose not to generate in order to save time:
+
+# (1) yes, (0) no
+generate_chi_sq_report=1
+
+# (1) yes, (0) no
+generate_probability_report=0
+
+# (1) yes, (0) no
+generate_depth_stats_report=0
+
 # Scroll down to see the code.
 
 
@@ -65,52 +79,61 @@ then
     ncore=1
 fi
 
-./scripts/cleanup.sh
-./scripts/ref_gen.sh $ncore > ./logs/$name"_reference_generation.log" 2>&1
+# running the first half of the pipeline
+if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 2 ]]
+then
+    ./scripts/cleanup.sh
+    ./scripts/ref_gen.sh $ncore > ./logs/$name"_reference_generation.log" 2>&1
 
-if [[ single -eq 1 ]]
-then
-    echo "running single"
-    if [[ paired -eq 0 ]]; then
-        for datapoint in $(ls "./data"); do
-            ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
-        done
-    elif [[ paired -eq 1 ]]; then
-        for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
-        do
-            ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
-            #sync
-            #echo 1 > /proc/sys/vm/drop_caches
-        done
+    if [[ single -eq 1 ]]
+    then
+        echo "running single"
+        if [[ paired -eq 0 ]]; then
+            for datapoint in $(ls "./data"); do
+                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
+            done
+        elif [[ paired -eq 1 ]]; then
+            for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
+            do
+                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
+                #sync
+                #echo 1 > /proc/sys/vm/drop_caches
+            done
+        fi
+    elif [[ single -eq 2 ]]
+    then
+        echo "running pooled"
+        ./scripts/args.sh $name $name $single $pooledp $ncore $default $paired
+    elif [[ single -eq 3 ]]
+    then
+        echo "running pooled in background"
+        ./scripts/args.sh $name $name 2 $pooledp $ncore $default $paired &
+        echo "running single"
+        if [[ paired -eq 0 ]]; then
+            for datapoint in $(ls "./data"); do
+                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired 
+            done
+        elif [[ paired -eq 1 ]]; then
+            for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
+            do
+                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired
+                #sync
+                #echo 1 > /proc/sys/vm/drop_caches
+            done
+        fi
+        wait
     fi
-elif [[ single -eq 2 ]]
-then
-    echo "running pooled"
-    ./scripts/args.sh $name $name $single $pooledp $ncore $default $paired
-elif [[ single -eq 3 ]]
-then
-    echo "running pooled in background"
-    ./scripts/args.sh $name $name 2 $pooledp $ncore $default $paired &
-    echo "running single"
-    if [[ paired -eq 0 ]]; then
-        for datapoint in $(ls "./data"); do
-            ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired 
-        done
-    elif [[ paired -eq 1 ]]; then
-        for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
-        do
-            ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired
-            #sync
-            #echo 1 > /proc/sys/vm/drop_caches
-        done
-    fi
-    wait
+
+    echo "Finished processing. Have not yet generated reports (scripts/gen_report.sh)."
 fi
 
-echo "Finished processing. Have not yet generated reports (scripts/gen_report.sh)."
+# running the second half of the pipeline, report generation
+if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 3 ]]
+then
+    echo "Generating reports."
+    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report
+fi
 
-echo "Generating reports."
-./scripts/gen_report.sh $mafcut
 
 echo  -e "\033[33;5;7mPipeline $name has finished\033[0m"
 

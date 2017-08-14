@@ -1,6 +1,11 @@
 #!/bin/bash
 echo "running gen_report.sh"
 
+mafcutoff=$1
+generate_chi_sq_report=$2 
+generate_probability_report=$3 
+generate_depth_stats_report=$4
+
 Rscript ./scripts/report_gen.R `pwd`
 Rscript ./scripts/report_subset.R `pwd`
 
@@ -22,4 +27,11 @@ do
 done
 wait
 
-Rscript ./scripts/report_gen_p2.R `pwd` $1
+Rscript ./scripts/report_gen_p2.R `pwd` $mafcutoff $generate_chi_sq_report $generate_probability_report
+
+if [[ generate_depth_stats_report -eq 1 ]]
+then
+    Rscript ./scripts/getDepthStats-parallel.R `pwd`
+fi
+
+
