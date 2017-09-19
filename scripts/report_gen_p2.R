@@ -205,7 +205,7 @@ write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cut
 # #######################################################################
 message("generating site mutation percentage data")
 
-fastaRef <- read.fasta(file = paste0(path, "/reference/formatted_output.fasta"), as.string = TRUE)
+fastaRef <- read.fasta(file = paste(path.expand(path), "reference/formatted_output.fasta", sep = "/"), as.string = TRUE)
 mutationReport <- data.frame()
 
 for(sector in 1:length(names(fastaRef)))
