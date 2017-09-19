@@ -23,7 +23,7 @@ pooledp=2
 
 
 # (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
-what_to_run=3
+what_to_run=1
 
 # some optional reports which you might choose not to generate in order to save time:
 
@@ -34,7 +34,7 @@ generate_chi_sq_report=1
 generate_probability_report=0
 
 # (1) yes, (0) no
-generate_depth_stats_report=0
+generate_depth_stats_report=1
 
 # Scroll down to see the code.
 
@@ -61,9 +61,34 @@ generate_depth_stats_report=0
 
 
 
-
-
-
+########################################################################
+# function formatPairedFileNames()
+# This gets the list of the R1 and R2 raw data input file names, chops  
+# off the end portion according to the various allowed input file types, 
+# and returns in the $datapoints variable the unique id portion of the
+# file names, after eliminating adjacent duplicates due to the R1 and
+# R2 files sharing the same base name.
+# Functions in bash are a little crazy, so the input parameter needs to 
+# be $datapoints. So you'd call it like:
+# datapoints=""
+# formatFileNames $datapoints
+formatPairedFileNames()
+{
+datapoints=$(ls "./data" \
+              | sed "s/_R1.fastq.gz//g" \
+              | sed "s/_R2.fastq.gz//g" \
+              | sed "s/_R1.fastq//g" \
+              | sed "s/_R2.fastq//g" \
+              | sed "s/_R1.fasta//g" \
+              | sed "s/_R2.fasta//g" \
+              | sed "s/_R1.mfa//g" \
+              | sed "s/_R2.mfa//g" \
+              | sed "s/_R1.fna//g" \
+              | sed "s/_R2.fna//g" \
+              | sed "s/_R1.fa//g" \
+              | sed "s/_R2.fa//g" \
+              | uniq)
+}
 
 
 
@@ -93,7 +118,9 @@ then
                 ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
             done
         elif [[ paired -eq 1 ]]; then
-            for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
+            datapoints=""
+            formatPairedFileNames $datapoints
+            for datapoint in $datapoints
             do
                 ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
                 #sync
@@ -114,7 +141,9 @@ then
                 ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired 
             done
         elif [[ paired -eq 1 ]]; then
-            for datapoint in $(ls "./data" | rev | cut -c 13- | rev | uniq)
+            datapoints=""
+            formatPairedFileNames $datapoints
+            for datapoint in $datapoints
             do
                 ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired
                 #sync
