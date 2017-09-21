@@ -23,7 +23,7 @@ pooledp=2
 
 
 # (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
-what_to_run=1
+what_to_run=3
 
 # some optional reports which you might choose not to generate in order to save time:
 
@@ -77,6 +77,14 @@ formatPairedFileNames()
 datapoints=$(ls "./data" \
               | sed "s/_R1.fastq.gz//g" \
               | sed "s/_R2.fastq.gz//g" \
+              | sed "s/_R1.fasta.gz//g" \
+              | sed "s/_R2.fasta.gz//g" \
+              | sed "s/_R1.mfa.gz//g" \
+              | sed "s/_R2.mfa.gz//g" \
+              | sed "s/_R1.fna.gz//g" \
+              | sed "s/_R2.fna.gz//g" \
+              | sed "s/_R1.fa.gz//g" \
+              | sed "s/_R2.fa.gz//g" \
               | sed "s/_R1.fastq//g" \
               | sed "s/_R2.fastq//g" \
               | sed "s/_R1.fasta//g" \
