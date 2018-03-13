@@ -223,7 +223,7 @@ for(sector in 1:length(names(fastaRef)))
 mutationReport <- mutationReport[order(-mutationReport$`percentage SNP`), ]
 mutationReport$`percentage SNP` <- mutationReport$`percentage SNP` * 100
 
-write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"), row.names=FALSE)
+write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), "mutation_percentage.csv", sep = "/"), row.names=TRUE)
 
 
 # #######################################################################
