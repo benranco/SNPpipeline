@@ -99,6 +99,7 @@ datapoints=$(ls "./data" \
 }
 
 
+./scripts/setup.sh $what_to_run
 
 
 if [ $single -eq 3 ]; then
