@@ -100,7 +100,12 @@ datapoints=$(ls "./data" \
 
 
 ./scripts/setup.sh $what_to_run
-
+# if setup had a bad exit code, abort the pipeline
+if [ $? -gt 0 ]
+then
+    echo "Failed in setup. Aborting pipeline."
+    exit $?
+fi
 
 if [ $single -eq 3 ]; then
 	ncore="$(( ($(grep -c ^processor /proc/cpuinfo) -4)/2 ))"
