@@ -38,10 +38,11 @@ then
     #mv ./reference/$ref ./reference/"formatted_output.fasta"
 fi
 
-echo "remove original fasta file"
+echo "move original fasta file(s)"
+mkdir ./reference/originalFastaFiles
 for dfa in $(ls ./reference | grep -v "formatted_output.fasta")
 do
-    rm ./reference/$dfa
+    mv ./reference/$dfa ./reference/originalFastaFiles/
 done
 
 ref="./referenceTemp/formatted_output"
