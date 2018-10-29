@@ -24,9 +24,9 @@ fi
 
 if [ $3 == 1 ]
 then
-    bash ./scripts/post_process.sh $1 $3 > ./logs/single/$1"_post_process.log" 2>&1
+    bash ./scripts/post_process.sh $1 $3 $8 > ./logs/single/$1"_post_process.log" 2>&1
 elif [ $3 == 2 ]
 then
-    bash ./scripts/post_process.sh $1 $3 > ./logs/pooled/$1"_post_process.log" 2>&1
+    bash ./scripts/post_process.sh $1 $3 $8 > ./logs/pooled/$1"_post_process.log" 2>&1
 fi
 

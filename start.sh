@@ -21,6 +21,8 @@ paired=1
 singlep=1
 pooledp=2
 
+# (1) remove indels after finding SNPs, (0) don't remove indels after finding SNPs
+remove_indels=0
 
 # (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
 what_to_run=3
@@ -129,14 +131,14 @@ then
         echo "running single"
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
-                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
+                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired $remove_indels
             done
         elif [[ paired -eq 1 ]]; then
             datapoints=""
             formatPairedFileNames $datapoints
             for datapoint in $datapoints
             do
-                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired
+                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
             done
@@ -144,22 +146,22 @@ then
     elif [[ single -eq 2 ]]
     then
         echo "running pooled"
-        ./scripts/args.sh $name $name $single $pooledp $ncore $default $paired
+        ./scripts/args.sh $name $name $single $pooledp $ncore $default $paired $remove_indels
     elif [[ single -eq 3 ]]
     then
         echo "running pooled in background"
-        ./scripts/args.sh $name $name 2 $pooledp $ncore $default $paired &
+        ./scripts/args.sh $name $name 2 $pooledp $ncore $default $paired $remove_indels &
         echo "running single"
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
-                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired 
+                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired $remove_indels 
             done
         elif [[ paired -eq 1 ]]; then
             datapoints=""
             formatPairedFileNames $datapoints
             for datapoint in $datapoints
             do
-                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired
+                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
             done
