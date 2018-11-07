@@ -1,6 +1,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 path <- args[1]
 file <- args[2]
+haploidOrDiploid <- args[3]
 
 #path <- "/home/gosuzombie/Desktop/region_38/run"
 #file <- "report_p432.Rds"
@@ -36,14 +37,19 @@ for(a in 1:nrow(report))
                       ' -p \"', paste(report[a, "CHROM"], report[a, "POS"], sep = ":"), '"')
         out <- as.matrix(read.delim(pipe(cmd), sep = "\n"))
         
-        if(substring(out[1,1], 0 ,1) == report[a, "REF"])
+        if(substring(out[1,1], 1 ,1) == report[a, "REF"])
         {
           if(nrow(out) >= 2)
           {
-            if(substring(out[2,1], 0 ,1) == "." || substring(out[2,1], 0 ,1) == ",")
+            if(substring(out[2,1], 1 ,1) == "." || substring(out[2,1], 1 ,1) == ",")
             {
-              #message("replace")
-              report[a,b] <- paste0(report[a, "REF"], "/", report[a, "REF"])
+              # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
+              # whereas if it's diploid we follow the format in the .tab file of "A/A".
+              if (haploidOrDiploid == 1) {
+                report[a,b] <- paste0(report[a, "REF"], "/")
+              } else {
+                report[a,b] <- paste0(report[a, "REF"], "/", report[a, "REF"])
+              }
             }
           }
         }

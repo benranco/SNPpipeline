@@ -5,6 +5,7 @@ mafcutoff=$1
 generate_chi_sq_report=$2 
 generate_probability_report=$3 
 generate_depth_stats_report=$4
+haploidOrDiploid=$5
 
 Rscript ./scripts/report_gen.R `pwd`
 Rscript ./scripts/report_subset.R `pwd`
@@ -22,7 +23,7 @@ do
 		counter=0
 	fi
 
-	Rscript ./scripts/parallel_process.R `pwd` $f &
+	Rscript ./scripts/parallel_process.R `pwd` $f $haploidOrDiploid &
 	counter=$(( $counter + 1 ))
 done
 wait

@@ -176,7 +176,7 @@ fi
 if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 3 ]]
 then
     echo "Generating reports."
-    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report
+    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singlep
 fi
 
 
