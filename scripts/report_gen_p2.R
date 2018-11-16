@@ -10,6 +10,8 @@ GENERATE_CHI_SQ_REPORT <- as.integer(GENERATE_CHI_SQ_REPORT)
 GENERATE_PROBABILITY_REPORT <- args[4]
 GENERATE_PROBABILITY_REPORT <- as.integer(GENERATE_PROBABILITY_REPORT)
 
+HAPLOID_OR_DIPLOID <- args[5]
+
 #debug arguments
 #path <- "/home/gosuzombie/Desktop/region38"
 #MAF_CUTOFF <- 0.3
@@ -71,13 +73,13 @@ if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23
 isRowNonBiallelic <- function(namesOfGenotypesInRow)
 {
   alleleIndex <- 1
-  individualAlleles <- character(length(namesOfGenotypesInRow) * 2) # because, for example "A/A" has two alleles, "A/G" has two...
+  individualAlleles <- character(length(namesOfGenotypesInRow) * 2) # because, for example "A/A" has two alleles, "A/G" has two. If a type is of format "A/", this function will pretend it is in format "A/A" and count the single A twice. This is okay to do, because the count is only used internally to this function.
   for ( type in namesOfGenotypesInRow )
   {
     charsInType <- strsplit(type, "")[[1]]
     individualAlleles[alleleIndex] <- charsInType[1]
     alleleIndex <- alleleIndex + 1
-    individualAlleles[alleleIndex] <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A"
+    individualAlleles[alleleIndex] <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # Because for haploid data, it is in format "A/" instead of "A/A".
     alleleIndex <- alleleIndex + 1
   }
   # if there are 3 or more unique alleles in the row, return TRUE, else return FALSE
@@ -172,15 +174,20 @@ for(a in 1:nrow(report))
   rowAsMatrix <- as.matrix(report[a, s:numColsInReport])
   factoredGenotypes <- table(rowAsMatrix, useNA = "no")
   totalAlleleCount <- sum(factoredGenotypes) * 2 # because, for example "A/A" has two alleles, "A/G" has two...
-  
+
   # count how many times each allele occurs (factoredGenotypes already lists how many times each genotype occurs)
   for ( type in names(factoredGenotypes) )
   {
     charsInType <- strsplit(type, "")[[1]]
     firstChar <- charsInType[1]
-    thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A", so count it twice if it still happens to be that way
     snpp[a,firstChar] <- snpp[a,firstChar][[1]] + factoredGenotypes[type][[1]]
-    snpp[a,thirdChar] <- snpp[a,thirdChar][[1]] + factoredGenotypes[type][[1]]
+
+    if (HAPLOID_OR_DIPLOID == 2) {
+      # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
+      # whereas if it's diploid we follow the format in the .tab file of "A/A".  
+      thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A" even in the diploid data, so count it twice if it still happens to be that way
+      snpp[a,thirdChar] <- snpp[a,thirdChar][[1]] + factoredGenotypes[type][[1]]
+    }
   }
 
   snpp[a, "empty"] <- sum(is.na(rowAsMatrix))
@@ -277,7 +284,7 @@ if (GENERATE_CHI_SQ_REPORT == 1)
         {
           charsInType <- strsplit(type, "")[[1]]
           firstChar <- charsInType[1]
-          thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A"
+          thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # Haploid data is in "A/" format, whereas diploid data is in "A/A" format, so if it's haploid we just treat the first character as if it's both the first and the third character, and count it twice. This is fine since the count is only used internally to determine relative percentages of alleles.
           alleleSums[firstChar] <- alleleSums[firstChar][[1]] + va[type][[1]]
           alleleSums[thirdChar] <- alleleSums[thirdChar][[1]] + va[type][[1]]
         }
@@ -351,7 +358,8 @@ if (GENERATE_CHI_SQ_REPORT == 1)
           secondAlleleIndex <- 1
         }
         
-        # if there was no heterozygous site containing the two most frequent alleles
+        # if there was no heterozygous site containing the two most frequent alleles,
+        # such as would be the case for Haploid data:
         if (is.na(HType))
         {
           HType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
@@ -467,6 +475,12 @@ if (GENERATE_PROBABILITY_REPORT == 1)
       # Of particular relevance to the code below, see the descriptions of GT and GL in GENO, section 1.4.2, 
       # page 5 of:    
       #     http://samtools.github.io/hts-specs/VCFv4.1.pdf
+      #     In the formula given in the documentation for GL: F(j/k) = (k*(k+1)/2)+j,  j and k are integers
+      #     representing REF or ALT or ALT2 (ALT only for triallelic, which we don't have). 
+      #     (0==REF, 1==ALT, 2==ALT2). So if the genotype is REF/ALT, use j=0 and k=1. Then, 
+      #     the result of the formula will be either 0, 1, or 2 (or also 3, 4, 5 if triallelic data), which we
+      #     then use to choose the right index for the GL probability. However, since indices in R start 
+      #     at 1, we will treat 0 as GL position 1, 1 as GL position 2, 2 as GL position 3. 
       ap <- scanVcf(fil) # import vcf file (see page 35 of http://bioconductor.org/packages/release/bioc/manuals/VariantAnnotation/man/VariantAnnotation.pdf)
       rr <- ap$`*:*-*`$rowRanges
       for(y in 1:nrow(reportd))
@@ -474,13 +488,38 @@ if (GENERATE_PROBABILITY_REPORT == 1)
         ind <- NA
         if(!is.na(reportd[y, x]))
         {
-          # The only time two characters occur (other than NA) is the shorthand version of "REF/REF": 
-          # "REF/" (eg. if REF is A, instead of writing A/A, write A/). In this case, since they both match
-          # the REF, set likelihood value to 1. This is actually legacy code, because reports are no longer 
-          # generated with the shorthand "REF/" way.
-          if(nchar(reportd[y,x]) == 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][2] == "/" )
+          # Haploid data, and the character matches the REF.
+          # In the case where the format is "A/" or "A" instead of "A/A", it is because the data is haploid.
+          # If the character matches the REF, set the likelihood value to 1.
+          if(nchar(reportd[y,x]) <= 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
           {
             reportd[y,x] <- 1
+          }
+          # Haploid data, and the character doesn't match the REF:
+          else if(nchar(reportd[y,x]) <= 2 & strsplit(reportd[y,x], "")[[1]][1] != reportd[y, "REF"] )
+          {
+            # see comment below on the equivalent assignment of ind in the next else-if clause (in the
+            # three character case):
+            ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))
+            
+            if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
+            {
+              # Check the Genotype (GT) to determine which GL position to use.
+              # Since this is haploid data, and we know already that it doesn't
+              # match the REF, we expect the GT to be 1 (==ALT allele).
+              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1" ) # "1" means GL position 2
+              {
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
+              }
+              else # Just in case the GT is "0" (==REF allele), it means GL position 1
+              {
+                reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
+              }
+            }
+            else # if ind is NA or null or has no value
+            {
+              reportd[y,x] <- NA
+            }
           }
           # three characters, eg. "A/A" or "A/T".
           else if(nchar(reportd[y,x]) == 3)  
@@ -489,6 +528,9 @@ if (GENERATE_PROBABILITY_REPORT == 1)
             # value and ":<this row's POS value>_". For our purposes, we only care about the first one in the
             # list if there are more than one. It'll be used to look up the Genotype Likelihood values for the
             # current cell.
+            # See the descriptions of GT and GL in GENO, section 1.4.2, page 5 of:    
+            #     http://samtools.github.io/hts-specs/VCFv4.1.pdf 
+            # as well as my previous comments in the code regarding that document, above this for-loop.
             # (Using the fixed=TRUE parameter in grep prevents it from evaluating the first string as a regular
             # expression - important, because it would cause problems for special characters otherwise).
             # (Using the value=FALSE parameter in grep makes it return the integer indices of matching elements,

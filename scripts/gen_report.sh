@@ -28,7 +28,7 @@ do
 done
 wait
 
-Rscript ./scripts/report_gen_p2.R `pwd` $mafcutoff $generate_chi_sq_report $generate_probability_report
+Rscript ./scripts/report_gen_p2.R `pwd` $mafcutoff $generate_chi_sq_report $generate_probability_report $haploidOrDiploid
 
 if [[ generate_depth_stats_report -eq 1 ]]
 then
