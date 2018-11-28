@@ -22,7 +22,7 @@ singlep=1
 pooledp=2
 
 # (1) remove indels after finding SNPs, (0) don't remove indels after finding SNPs
-remove_indels=0
+remove_indels=1
 
 # (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
 what_to_run=3
