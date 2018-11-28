@@ -10,7 +10,7 @@ GENERATE_CHI_SQ_REPORT <- as.integer(GENERATE_CHI_SQ_REPORT)
 GENERATE_PROBABILITY_REPORT <- args[4]
 GENERATE_PROBABILITY_REPORT <- as.integer(GENERATE_PROBABILITY_REPORT)
 
-HAPLOID_OR_DIPLOID <- args[5]
+HAPLOID_OR_DIPLOID <- args[5] # 1 == haploid, 2 == diploid
 
 #debug arguments
 #path <- "/home/gosuzombie/Desktop/region38"
@@ -362,8 +362,16 @@ if (GENERATE_CHI_SQ_REPORT == 1)
         # such as would be the case for Haploid data:
         if (is.na(HType))
         {
-          HType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
-          AType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
+          # 1 == haploid, 2 == diploid.
+          # haploid data is formatted like "G/", diploid like "G/G"
+          if (HAPLOID_OR_DIPLOID == 1) {
+            HType <- paste0(names(alleleSums)[firstAlleleIndex],"/")
+            AType <- paste0(names(alleleSums)[secondAlleleIndex],"/")
+          }
+          else {
+            HType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
+            AType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
+          }
         }
         else
         {
@@ -377,6 +385,16 @@ if (GENERATE_CHI_SQ_REPORT == 1)
         {      
           reportc[curRow, s:ncol(reportc)] <- gsub(BType, "B", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
         }
+
+        # deal with the potential problem if the data is haploid but the data was formatted in both haploid 
+        # and diploid format (e.g. both "T/" and "T/T", and HType is "T/", then the cases of "T/T" would be 
+        # updated to "HT"). This shouldn't be the case with the updated pipeline, but just in case.
+        if (HAPLOID_OR_DIPLOID == 1) {
+          reportc[curRow, s:ncol(reportc)] <- gsub("H[ACGT]", "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
+          reportc[curRow, s:ncol(reportc)] <- gsub("A[ACGT]", "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
+        }
+      
+
         # replace all elements consisting of a character followed by a "/" followed by an optional character(s) with NA (i.e. all elements that haven't already been replaced with H, A or B):
         reportc[curRow, s:ncol(reportc)] <- gsub("^./.*$", NA, as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE) 
       }
