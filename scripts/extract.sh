@@ -3,10 +3,15 @@
 
 echo "running extract.sh"
 
-if [ $3 == 1 ]
+# the $1 input parameter is the input filename minus the extension
+ploidy=$2
+single=$3
+default=$4
+
+if [ $single == 1 ]
 then
     path="single"
-elif [ $3 == 2 ]
+elif [ $single == 2 ]
 then
     path="pooled"
 fi
@@ -31,10 +36,10 @@ ref="./reference/formatted_output.fasta"
 
 echo "find SNPs with freebayes"
 
-if [ $4 == 0 ]
+if [ $default == 0 ]
 then
-	./tools/freebayes/bin/freebayes -f $ref -p $2 --pvar 0.75 --min-alternate-count 1 --theta 0.01  --use-best-n-alleles 4 --min-alternate-fraction 0.8 $binput 1> ./outputTemp/$path/$1.vcf
-elif [ $4 == 1 ]
+	./tools/freebayes/bin/freebayes -f $ref -p $ploidy --pvar 0.75 --min-alternate-count 1 --theta 0.01  --use-best-n-alleles 4 --min-alternate-fraction 0.8 $binput 1> ./outputTemp/$path/$1.vcf
+elif [ $default == 1 ]
 then 
-	./tools/freebayes/bin/freebayes -f $ref -p $2 $binput 1> ./outputTemp/$path/$1.vcf
+	./tools/freebayes/bin/freebayes -f $ref -p $ploidy $binput 1> ./outputTemp/$path/$1.vcf
 fi

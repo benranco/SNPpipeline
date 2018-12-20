@@ -1,32 +1,41 @@
 #!/bin/bash
 #get arguments here to call other scripts
 
+datapoint=$1
+name=$2
+single=$3
+ploidy=$4
+ncore=$5
+default=$6
+paired=$7
+remove_indels=$8
+
 #calling methods required for future calls 
 
 #make sure data isnt modified
 chmod 555 ./data/*
 
-if [ $3 == 1 ]
+if [ $single == 1 ]
 then
-    bash ./scripts/align.sh $1 $5 $7 > ./logs/single/$1"_align.log" 2>&1 
-elif [ $3 == 2 ]
+    bash ./scripts/align.sh $datapoint $ncore $paired > ./logs/single/$datapoint"_align.log" 2>&1 
+elif [ $single == 2 ]
 then
-    bash ./scripts/align_all.sh $1 $5 $7 > ./logs/pooled/$1"_align.log" 2>&1
+    bash ./scripts/align_all.sh $datapoint $ncore $paired > ./logs/pooled/$datapoint"_align.log" 2>&1
 fi
 
-if [ $3 == 1 ]
+if [ $single == 1 ]
 then
-    bash ./scripts/extract.sh $1 $4 $3 $6 > ./logs/single/$1"_extract.log" 2>&1
-elif [ $3 == 2 ]
+    bash ./scripts/extract.sh $datapoint $ploidy $single $default > ./logs/single/$datapoint"_extract.log" 2>&1
+elif [ $single == 2 ]
 then
-    bash ./scripts/extract.sh $1 $4 $3 $6 > ./logs/pooled/$1"_extract.log" 2>&1
+    bash ./scripts/extract.sh $datapoint $ploidy $single $default > ./logs/pooled/$datapoint"_extract.log" 2>&1
 fi
 
-if [ $3 == 1 ]
+if [ $single == 1 ]
 then
-    bash ./scripts/post_process.sh $1 $3 $8 > ./logs/single/$1"_post_process.log" 2>&1
-elif [ $3 == 2 ]
+    bash ./scripts/post_process.sh $datapoint $single $remove_indels > ./logs/single/$datapoint"_post_process.log" 2>&1
+elif [ $single == 2 ]
 then
-    bash ./scripts/post_process.sh $1 $3 $8 > ./logs/pooled/$1"_post_process.log" 2>&1
+    bash ./scripts/post_process.sh $datapoint $single $remove_indels > ./logs/pooled/$datapoint"_post_process.log" 2>&1
 fi
 

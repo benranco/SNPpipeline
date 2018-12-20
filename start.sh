@@ -1,25 +1,26 @@
 #!/bin/bash
+
+# For further documentation on this pipeline, see the README.md file.
+
 #call this pipeline something unique, replace spaces with underlines
 name="junjun_fluidigm"
 
-#(1) single, (2) pooled, (3) both
+# paired input raw data files (e.g. R1 & R2) vs unpaired files: (1) paired, (0) unpaired
+paired=1
+
+# whether each sample has its own raw data file(s), or samples are pooled into combined input file(s): (1) single, (2) pooled, (3) both
 single=1
 
-#contact info for pipeline completion, doesnt work
-email=""
+#ploidy values for single and pooled runs: (1) haploid, (2) diploid
+singleploidy=1
+pooledploidy=2
 
-#default freebayes parameters or not: (3) custom (not implemented), (1) default, (0) paper
+
+#use default freebayes parameters or not: (3) custom (not implemented), (1) default, (0) parameters from research paper
 default=1
 
 #maf cutoff 
 mafcut=0.3
-
-# paired files (e.g. R1 & R2) vs unpaired files: (1) paired, (0) unpaired
-paired=1
-
-#ploidy values for single and pooled runs: (1) haploid, (2) diploid
-singlep=1
-pooledp=2
 
 # (1) remove indels after finding SNPs, (0) don't remove indels after finding SNPs
 remove_indels=1
@@ -32,10 +33,10 @@ what_to_run=3
 # (1) yes, (0) no
 generate_chi_sq_report=1
 
-# (1) yes, (0) no
+# (1) yes, (0) no. This can be very time consuming, and as yet has not been useful.
 generate_probability_report=0
 
-# (1) yes, (0) no
+# (1) yes, (0) no. This can be very time consuming.
 generate_depth_stats_report=1
 
 # Scroll down to see the code.
@@ -131,14 +132,14 @@ then
         echo "running single"
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
-                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired $remove_indels
+                ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $default $paired $remove_indels
             done
         elif [[ paired -eq 1 ]]; then
             datapoints=""
             formatPairedFileNames $datapoints
             for datapoint in $datapoints
             do
-                ./scripts/args.sh $datapoint $name $single $singlep $ncore $default $paired $remove_indels
+                ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $default $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
             done
@@ -146,22 +147,22 @@ then
     elif [[ single -eq 2 ]]
     then
         echo "running pooled"
-        ./scripts/args.sh $name $name $single $pooledp $ncore $default $paired $remove_indels
+        ./scripts/args.sh $name $name $single $pooledploidy $ncore $default $paired $remove_indels
     elif [[ single -eq 3 ]]
     then
         echo "running pooled in background"
-        ./scripts/args.sh $name $name 2 $pooledp $ncore $default $paired $remove_indels &
+        ./scripts/args.sh $name $name 2 $pooledploidy $ncore $default $paired $remove_indels &
         echo "running single"
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
-                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired $remove_indels 
+                ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $default $paired $remove_indels 
             done
         elif [[ paired -eq 1 ]]; then
             datapoints=""
             formatPairedFileNames $datapoints
             for datapoint in $datapoints
             do
-                ./scripts/args.sh $datapoint $name 1 $singlep $ncore $default $paired $remove_indels
+                ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $default $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
             done
@@ -176,7 +177,7 @@ fi
 if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 3 ]]
 then
     echo "Generating reports."
-    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singlep
+    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singleploidy
 fi
 
 

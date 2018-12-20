@@ -4,11 +4,13 @@
 echo "running align_all.sh"
 
 input=$1
+ncore=$2
+paired=$3
 
 ref="./referenceTemp/formatted_output"
 
 
-if [[ $3 == 0 ]]; then
+if [[ $paired == 0 ]]; then
     
     echo "making comma seperated list"
     data=""
@@ -25,9 +27,9 @@ if [[ $3 == 0 ]]; then
 
     #align with bowtie2, save to temp
     echo "alignment with bowtie" 
-	./tools/bowtie2-2.2.9/bowtie2 -p $2 -x $ref -U $data --local --very-sensitive-local -S "./dataTemp/pooled/$input.sam"
+	./tools/bowtie2-2.2.9/bowtie2 -p $ncore -x $ref -U $data --local --very-sensitive-local -S "./dataTemp/pooled/$input.sam"
 
-elif [[ $3 == 1 ]]; then
+elif [[ $paired == 1 ]]; then
 
     echo "making comma seperated lists for R1 and R2"
     dataone=""
@@ -55,7 +57,7 @@ elif [[ $3 == 1 ]]; then
 
     #align with bowtie2, save to temp
     echo "alignment with bowtie" 
-    ./tools/bowtie2-2.2.9/bowtie2 -p $2 -x $ref -1 $dataone -2 $datatwo --local --very-sensitive-local -S "./dataTemp/pooled/$input.sam"
+    ./tools/bowtie2-2.2.9/bowtie2 -p $ncore -x $ref -1 $dataone -2 $datatwo --local --very-sensitive-local -S "./dataTemp/pooled/$input.sam"
 fi
 
 echo "--------------------"
