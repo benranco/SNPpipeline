@@ -3,7 +3,7 @@
 # For further documentation on this pipeline, see the README.md file.
 
 #call this pipeline something unique, replace spaces with underlines
-name="junjun_fluidigm"
+name="junjun_pipeline"
 
 # paired input raw data files (e.g. R1 & R2) vs unpaired files: (1) paired, (0) unpaired
 paired=1
@@ -26,7 +26,7 @@ mafcut=0.3
 remove_indels=1
 
 # (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
-what_to_run=3
+what_to_run=1
 
 # some optional reports which you might choose not to generate in order to save time:
 
@@ -37,7 +37,7 @@ generate_chi_sq_report=1
 generate_probability_report=0
 
 # (1) yes, (0) no. This can be very time consuming.
-generate_depth_stats_report=1
+generate_depth_stats_report=0
 
 # Scroll down to see the code.
 
@@ -177,7 +177,7 @@ fi
 if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 3 ]]
 then
     echo "Generating reports."
-    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singleploidy
+    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singleploidy $remove_indels
 fi
 
 

@@ -11,6 +11,12 @@ GENERATE_PROBABILITY_REPORT <- args[4]
 GENERATE_PROBABILITY_REPORT <- as.integer(GENERATE_PROBABILITY_REPORT)
 
 HAPLOID_OR_DIPLOID <- args[5] # 1 == haploid, 2 == diploid
+HAPLOID_OR_DIPLOID <- as.integer(HAPLOID_OR_DIPLOID)
+
+HAS_INDELS <- TRUE  
+if (as.integer(args[6]) == 1) {
+  HAS_INDELS <- FALSE
+}
 
 #debug arguments
 #path <- "/home/gosuzombie/Desktop/region38"
@@ -55,6 +61,7 @@ for(single1 in list.files(paste0(path, "/reporttemp")))
 
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"), row.names=FALSE)
 
+
 # #######################################################################
 message("editing for cutoffs")
   
@@ -69,17 +76,22 @@ if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23
   message("not enough samples for full cutoff editing, just removing non-biallelic rows")
 }
 
-
+# Function: isRowNonBiallelic - determines if the given row data has more than two alleles.
+# input:  a list of all the unique data items in the report. Each data item is formatted:
+#         "allele/allele" or possibly (for legacy purposes) "allele/". An allele is usually
+#         only one character long, but in the case where indels were not removed in the first
+#         part of the pipeline, an allele can have two or more characters.
+# returns: TRUE if the row has more than two alleles, FALSE if it only has two (or one) allele
 isRowNonBiallelic <- function(namesOfGenotypesInRow)
 {
   alleleIndex <- 1
   individualAlleles <- character(length(namesOfGenotypesInRow) * 2) # because, for example "A/A" has two alleles, "A/G" has two. If a type is of format "A/", this function will pretend it is in format "A/A" and count the single A twice. This is okay to do, because the count is only used internally to this function.
   for ( type in namesOfGenotypesInRow )
   {
-    charsInType <- strsplit(type, "")[[1]]
-    individualAlleles[alleleIndex] <- charsInType[1]
+    allelesInType <- strsplit(type, "/")[[1]]
+    individualAlleles[alleleIndex] <- allelesInType[1]
     alleleIndex <- alleleIndex + 1
-    individualAlleles[alleleIndex] <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # Because for haploid data, it is in format "A/" instead of "A/A".
+    individualAlleles[alleleIndex] <- ifelse (length(allelesInType) > 1, allelesInType[2], allelesInType[1]) # Because for haploid data, it is in format "A/" instead of "A/A".
     alleleIndex <- alleleIndex + 1
   }
   # if there are 3 or more unique alleles in the row, return TRUE, else return FALSE
@@ -90,7 +102,7 @@ isRowNonBiallelic <- function(namesOfGenotypesInRow)
 numrows <- nrow(report)
 numColsInReport <- ncol(report)
 rowsToRemove <- NULL
-rowsToRemove <- numeric(numrows)
+rowsToRemove <- logical(numrows) # initializes all to FALSE
 
 
 if(!("COMBINED" %in% colnames(report)))
@@ -103,54 +115,82 @@ if(!("COMBINED" %in% colnames(report)))
 
 numDataCols <- numColsInReport - (startCol - 1)
 
-reportIndex <- 1
-rowsToRemoveIndex <- 1
-
-while(reportIndex <= numrows)
+for (curRow in 1:nrow(report)) 
 {
-  rowData <- as.matrix(report[reportIndex,startCol:numColsInReport]) 
+  rowData <- as.matrix(report[curRow,startCol:numColsInReport]) 
   tabulatedRowData <- table(rowData, useNA = "no")
   tabulatedRowDataNames <- names(tabulatedRowData)
 
   # remove row if there's only one (or 0) type of non-NA data
   if( length(tabulatedRowDataNames) <= 1 & doFullEditingForCutoffs)
   {
-    rowsToRemove[rowsToRemoveIndex] <- reportIndex
-    rowsToRemoveIndex <- rowsToRemoveIndex + 1
+    rowsToRemove[curRow] <- TRUE
   }
   # remove row if more than half of it's data values are NA
   else if( sum(tabulatedRowData) < numDataCols %/% 2 & doFullEditingForCutoffs)
   {
-    rowsToRemove[rowsToRemoveIndex] <- reportIndex
-    rowsToRemoveIndex <- rowsToRemoveIndex + 1
+    rowsToRemove[curRow] <- TRUE
   }
   # remove row if it has 3 or more unique alleles (eg. a row with A/A,A/C,C/C is kept, but 
   # a row with A/A,A/C,C/T is removed). We only keep biallelic data.
   else if( isRowNonBiallelic(tabulatedRowDataNames) )
   {
-    rowsToRemove[rowsToRemoveIndex] <- reportIndex
-    rowsToRemoveIndex <- rowsToRemoveIndex + 1
+    rowsToRemove[curRow] <- TRUE
   }
 
-  reportIndex <- reportIndex + 1
 }
 
-rowsToRemove <- rowsToRemove[!(rowsToRemove %in% c(0))] # remove all elements containing 0 from rowsToRemove
-if(length(rowsToRemove) > 0) 
-{
-  report <- report[-rowsToRemove[1:length(rowsToRemove)], ]
-}
+report <- report[!rowsToRemove, ]
+
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "edited_report.csv", sep = "/"), row.names=FALSE)
 
+# #######################################################################
+
+# Function: tallyAllelesInFactoredRow 
+# input: takes as input a row of SNP data that has already been factored into totals of each genotype. 
+# returns: a data.frame of one row containing the totals of each unique allele, sorted  in decreasing order.
+tallyAllelesInFactoredRow <- function(factoredRow) {
+
+  alleleSums <- data.frame("temp_col"=0) # data frame initialised with one row, and a default column "temp_col" with value of 0 (which won't be used)
+  alleleSums$temp_col <- NULL # remove the temp_col, which was needed to initialize the dataframe to one row
+  
+  # count how many times each allele occurs    
+  for ( type in names(factoredRow) )
+  {
+    allelesInType <- strsplit(type, "/")[[1]]
+    firstAllele <- allelesInType[1]
+    if (firstAllele %in% names(alleleSums)) {
+      alleleSums[firstAllele] <- alleleSums[firstAllele][[1]] + factoredRow[type][[1]]
+    }
+    else {
+      alleleSums[firstAllele] <- factoredRow[type][[1]]
+    }
+
+    if (HAPLOID_OR_DIPLOID == 2) {
+      # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
+      # whereas if it's diploid we follow the format in the .tab file of "A/A". 
+ 
+      secondAllele <- ifelse (length(allelesInType) > 1, allelesInType[2], allelesInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A" even in the diploid data, so count it twice if it still happens to be that way
+    
+      if (secondAllele %in% names(alleleSums)) {
+        alleleSums[secondAllele] <- alleleSums[secondAllele][[1]] + factoredRow[type][[1]]
+      }
+      else {
+        alleleSums[secondAllele] <- factoredRow[type][[1]]
+      }
+    }
+  } # end for-loop
+  alleleSums <- sort(alleleSums, decreasing = TRUE)
+  alleleSums
+}
 
 # #######################################################################
 message("finding snp percentage per site")
-if(!("COMBINED" %in% colnames(report)))
-{
+if(!("COMBINED" %in% colnames(report))) {
   snpp <- report[, c(1:3)]
   s <- 4
-}else
-{
+} 
+else {
   snpp <- report[, c(1:4)]
   s <- 5
 }
@@ -163,39 +203,67 @@ snpp$A <- integer(numRows)
 snpp$C <- integer(numRows)
 snpp$T <- integer(numRows)
 snpp$G <- integer(numRows)
+if (HAS_INDELS) {
+  snpp$indel1 <- integer(numRows)
+  snpp$indel2 <- integer(numRows)
+  snpp$other_indels <- integer(numRows)
+  snpp$indel1_val <- character(numRows)
+  snpp$indel2_val <- character(numRows)
+}
 snpp$empty <- integer(numRows)
 snpp$max <- integer(numRows)
 snpp$second_max <- integer(numRows)
 snpp$sum <- integer(numRows)
 snpp$MAF <- numeric(numRows)
 
-for(a in 1:nrow(report))
+for(curRow in 1:nrow(report))
 {
-  rowAsMatrix <- as.matrix(report[a, s:numColsInReport])
+
+  rowAsMatrix <- as.matrix(report[curRow, s:numColsInReport])
   factoredGenotypes <- table(rowAsMatrix, useNA = "no")
-  totalAlleleCount <- sum(factoredGenotypes) * 2 # because, for example "A/A" has two alleles, "A/G" has two...
+  alleleSums <- tallyAllelesInFactoredRow(factoredGenotypes)
+  alleleSums <- sort(alleleSums, decreasing = TRUE)
 
-  # count how many times each allele occurs (factoredGenotypes already lists how many times each genotype occurs)
-  for ( type in names(factoredGenotypes) )
-  {
-    charsInType <- strsplit(type, "")[[1]]
-    firstChar <- charsInType[1]
-    snpp[a,firstChar] <- snpp[a,firstChar][[1]] + factoredGenotypes[type][[1]]
+  indel1 <- NA
+  indel2 <- NA
 
-    if (HAPLOID_OR_DIPLOID == 2) {
-      # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
-      # whereas if it's diploid we follow the format in the .tab file of "A/A".  
-      thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # There used to be e.g. "A/" as a shorthand for "A/A" even in the diploid data, so count it twice if it still happens to be that way
-      snpp[a,thirdChar] <- snpp[a,thirdChar][[1]] + factoredGenotypes[type][[1]]
+  # this for-loop requires alleleSums to be sorted in decreasing order
+  for ( allele in names(alleleSums)) {
+    if (allele %in% c("A","C","T","G")) {
+      snpp[curRow,allele] <- snpp[curRow,allele][[1]] + alleleSums[allele][[1]]
+    }
+    else if (nchar(allele) > 1 && HAS_INDELS == TRUE) {
+      if (is.na(indel1)) {
+        indel1 <- allele
+        snpp[curRow,"indel1"] <- snpp[curRow,"indel1"][[1]] + alleleSums[allele][[1]]
+        snpp[curRow,"indel1_val"] <- allele
+      }
+      else if (is.na(indel2)) {
+        indel2 <- allele
+        snpp[curRow,"indel2"] <- snpp[curRow,"indel2"][[1]] + alleleSums[allele][[1]]
+        snpp[curRow,"indel2_val"] <- allele
+      }
+      else {
+        snpp[curRow,"other_indels"] <- snpp[curRow,"other_indels"][[1]] + alleleSums[allele][[1]]
+      }
     }
   }
 
-  snpp[a, "empty"] <- sum(is.na(rowAsMatrix))
-  snpp[a, "max"] <- max(snpp[a, c("A", "C", "T", "G")])
-  snpp[a, "second_max"] <- sort(snpp[a, c("A", "C", "T", "G")], TRUE)[2]
-  snpp[a, "sum"] <- sum(snpp[a, c("A", "C", "T", "G")])
-  snpp[a, "MAF"] <- snpp[a, "second_max"] / (snpp[a, "second_max"] + snpp[a, "max"]) 
-  #snpp[a, "chi"] <- ((snpp[a,"max"] - snpp[a,"sum"]%/%2)^2)/snpp[a, "sum"]%/%2  + ((snpp[a,"second_max"] - snpp[a,"sum"]%/%2)^2)/snpp[a, "sum"]%/%2 
+  snpp[curRow, "empty"] <- sum(is.na(rowAsMatrix))
+
+  if (HAS_INDELS) {  
+    snpp[curRow, "max"] <- max(snpp[curRow, c("A", "C", "T", "G", "indel1", "indel2")])
+    snpp[curRow, "second_max"] <- sort(snpp[curRow, c("A", "C", "T", "G", "indel1", "indel2")], decreasing=TRUE)[2]
+    snpp[curRow, "sum"] <- sum(snpp[curRow, c("A", "C", "T", "G", "indel1", "indel2")])
+  }
+  else {
+    snpp[curRow, "max"] <- max(snpp[curRow, c("A", "C", "T", "G")])
+    snpp[curRow, "second_max"] <- sort(snpp[curRow, c("A", "C", "T", "G")], decreasing=TRUE)[2]
+    snpp[curRow, "sum"] <- sum(snpp[curRow, c("A", "C", "T", "G")])
+  }
+
+  snpp[curRow, "MAF"] <- snpp[curRow, "second_max"] / (snpp[curRow, "second_max"] + snpp[curRow, "max"]) 
+  #snpp[curRow, "chi"] <- ((snpp[curRow,"max"] - snpp[curRow,"sum"]%/%2)^2)/snpp[curRow, "sum"]%/%2  + ((snpp[curRow,"second_max"] - snpp[curRow,"sum"]%/%2)^2)/snpp[curRow, "sum"]%/%2 
 }
 
 write.csv(snpp, paste(paste(path.expand(path), "reports", sep = "/"), "percentage_snps.csv", sep = "/"), row.names=FALSE)
@@ -244,24 +312,28 @@ if (GENERATE_CHI_SQ_REPORT == 1)
 
     # New logic:
     # remove rows with NA in MORE than 20% of sites
-    # calculate occurences of each character (eg. A/A, A/G, G/G = 3 A, 3 G)
-    #   if the most frequent character has more than 95% of occurences, remove row
-    #   if the second most frequent character has less than 5% of occurences, remove row (TODO: Or do we sum all the minor characters to get 5%, if there's more than one minor character? - I doubt this, because H,A,B encoding only allows for three characters.)
+    # calculate occurences of each allele (eg. A/A, A/G, G/G = 3 A, 3 G)
+    #   if the most frequent allele has more than 95% of occurences, remove row
+    #   if the second most frequent allele has less than 5% of occurences, remove row (TODO: Or do we sum all the minor characters to get 5%, if there's more than one minor character? - I doubt this, because H,A,B encoding only allows for three characters.)
     #   set the heterozygous genotype (eg. G/T) to H, the most frequent homo type to A (eg. G/G), and the second most frequent (if it exists, eg. T/T) to B (if there's a tie in homo type frequency then set the REF/REF one to A)
     #   if there are no heterozygous genotypes, set the most frequent homo type to H and the second most to A (if there's a tie in homo type frequency then set the REF/REF one to H)
-    #   set all samples that contain at least one other allele besides the top two to NA (TODO: is this right?)
+    #   set all cells that were converted to H, A or B to NA
 
     # TODO: The above logic is fine for biallelic sites, but what about triallelic sites? They would have three
     # possible heterozygous genotypes (REF/ALT1, REF/ALT2, ALT1/ALT2); if I set the most frequently occuring one to
     # H, what do I set the other two to? They would also have three possible homozygous genotypes (REF/REF, ALT1/ALT1, ALT2/ALT2); if I set the most frequently occuring one to A and the second most to B, what do I set the other to?
 
     reportc <- report
-    curRow <- 1
-    totalRows <- nrow(reportc)
+    chiRowsToRemove <- logical(nrow(reportc)) # initializes all to FALSE
+    # new columns that will be added to the chi sq report
+    H_Type <- character(nrow(reportc))
+    A_Type <- character(nrow(reportc))
+    B_Type <- character(nrow(reportc)) 
+    includeB_Type <- FALSE # B type col will only be added to the report if there is a B type
 
     numDataCols <- ncol(reportc) - (s-1)
 
-    while(curRow <= totalRows)
+    for (curRow in 1:nrow(reportc))
     {
       datap <- reportc[curRow, s:ncol(reportc)]
 
@@ -269,140 +341,160 @@ if (GENERATE_CHI_SQ_REPORT == 1)
       if( numNAsInRow/numDataCols > 0.2 ) 
       {
         # Remove the row if it has more than 20% NA's
-        reportc <- reportc[-curRow, ]
-        totalRows <- totalRows - 1
-        curRow <- curRow - 1
+        chiRowsToRemove[curRow] <- TRUE
       }
       else
       {
-        va <- sort(table(as.matrix(datap), useNA = "no"), decreasing = TRUE)
-        totalAlleleCount <- sum(va) * 2 # because, for example "A/A" has two alleles, "A/G" has two...
-        alleleSums <- data.frame(A = 0, C = 0, G = 0, T = 0)
-        
-        # count how many times each allele occurs    
-        for ( type in names(va) )
-        {
-          charsInType <- strsplit(type, "")[[1]]
-          firstChar <- charsInType[1]
-          thirdChar <- ifelse (length(charsInType) > 2, charsInType[3], charsInType[1]) # Haploid data is in "A/" format, whereas diploid data is in "A/A" format, so if it's haploid we just treat the first character as if it's both the first and the third character, and count it twice. This is fine since the count is only used internally to determine relative percentages of alleles.
-          alleleSums[firstChar] <- alleleSums[firstChar][[1]] + va[type][[1]]
-          alleleSums[thirdChar] <- alleleSums[thirdChar][[1]] + va[type][[1]]
+        factoredRow <- sort(table(as.matrix(datap), useNA = "no"), decreasing = TRUE)
+        totalAlleleCount <- sum(factoredRow)
+        if (HAPLOID_OR_DIPLOID == 2) {
+          # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
+          # whereas if it's diploid we follow the format in the .tab file of "A/A".  
+          totalAlleleCount <- totalAlleleCount * 2 # because, for example "A/A" has two alleles, "A/G" has two...
         }
+        alleleSums <- tallyAllelesInFactoredRow(factoredRow)
         alleleSums <- sort(alleleSums, decreasing = TRUE)
         
         if ( alleleSums[1]/totalAlleleCount > 0.95 )
         {
           # Remove the row if the most frequent allele occurs more than 95% of the time
-          reportc <- reportc[-curRow, ]
-          totalRows <- totalRows - 1
-          curRow <- curRow - 1
+          chiRowsToRemove[curRow] <- TRUE
         }
         else if ( alleleSums[2]/totalAlleleCount < 0.05 )
         {
           # Remove the row if the second most frequent allele occurs less than 5% of the time
-          reportc <- reportc[-curRow, ]
-          totalRows <- totalRows - 1
-          curRow <- curRow - 1
+          chiRowsToRemove[curRow] <- TRUE
         }
-        
-        HType <- NA
-        AType <- NA
-        BType <- NA
+        else 
+        {
+          # Process the row that we keep
+          HType <- NA
+          AType <- NA
+          BType <- NA
 
-        # figure out which way around the heterozygous genotype should be (eg. "G/T" or "T/G") 
-        # by taking the one with the most occurences (va is sorted by number of occurences)
-        # (most likely only one of them will have any occurences at all)
-        HTypeOpt1 <- paste0(names(alleleSums)[1],"/",names(alleleSums)[2])
-        HTypeOpt2 <- paste0(names(alleleSums)[2],"/",names(alleleSums)[1])
-        HTypeOpt1Frequency <- 0
-        HTypeOpt2Frequency <- 0
-        for (type in names(va))
-        {
-          if (type == HTypeOpt1)
-          {
-            if (is.na(HType)) 
-            { 
-              HType <- HTypeOpt1 
-            }
-            HTypeOpt1Frequency <- va[type]
-          }
-          else if (type == HTypeOpt2)
-          {
-            if (is.na(HType)) 
-            { 
-              HType <- HTypeOpt2
-            }
-            HTypeOpt2Frequency <- va[type]
-          }
-        }
-        # if HTypeOpt1Frequency and HTypeOpt2Frequency are tied, pick the one that starts with the REF
-        if ( HTypeOpt1Frequency > 0 & HTypeOpt1Frequency == HTypeOpt2Frequency )
-        {
-          if ( names(alleleSums)[1] == reportc[curRow, "REF"] )
-          {
-            HType <- HTypeOpt1
-          }
-          else if ( names(alleleSums)[2] == reportc[curRow, "REF"] )
-          {
-            HType <- HTypeOpt2
-          }
-        }
-        
-        firstAlleleIndex <- 1
-        secondAlleleIndex <- 2
-        # if the first two alleles are tied in terms of frequency, choose the one that matches the REF
-        # as the first one.    
-        if ( alleleSums[1] == alleleSums[2] & names(alleleSums)[2] == reportc[curRow, "REF"] ) 
-        {
-          firstAlleleIndex <- 2
-          secondAlleleIndex <- 1
-        }
-        
-        # if there was no heterozygous site containing the two most frequent alleles,
-        # such as would be the case for Haploid data:
-        if (is.na(HType))
-        {
-          # 1 == haploid, 2 == diploid.
+          # For the code below, the possibility of length(names(alleleSums)) == 1 isn't a problem 
+          # because in that case the row would be removed from the chi sq table (above) and we 
+          # wouldn't be in this else clause.
+
           # haploid data is formatted like "G/", diploid like "G/G"
+          # 1 == haploid, 2 == diploid.
+          if (HAPLOID_OR_DIPLOID == 2) { 
+            # Figure out which way around the heterozygous genotype should be (eg. "G/T" or "T/G") 
+            # by taking the one with the most occurences (factoredRow is sorted by number of occurences)
+            # (most likely only one of them will have any occurences at all)
+            HTypeOpt1 <- paste0(names(alleleSums)[1],"/",names(alleleSums)[2])
+            HTypeOpt2 <- paste0(names(alleleSums)[2],"/",names(alleleSums)[1])
+            HTypeOpt1Frequency <- 0
+            HTypeOpt2Frequency <- 0
+            for (type in names(factoredRow))
+            {
+              if (type == HTypeOpt1)
+              {
+                if (is.na(HType)) 
+                { 
+                  HType <- HTypeOpt1 
+                }
+                HTypeOpt1Frequency <- factoredRow[type]
+              }
+              else if (type == HTypeOpt2)
+              {
+                if (is.na(HType)) 
+                { 
+                  HType <- HTypeOpt2
+                }
+                HTypeOpt2Frequency <- factoredRow[type]
+              }
+            }
+            # if HTypeOpt1Frequency and HTypeOpt2Frequency are tied, pick the one that starts with the REF
+            if ( HTypeOpt1Frequency > 0 & HTypeOpt1Frequency == HTypeOpt2Frequency )
+            {
+              if ( names(alleleSums)[1] == reportc[curRow, "REF"] )
+              {
+                HType <- HTypeOpt1
+              }
+              else if ( names(alleleSums)[2] == reportc[curRow, "REF"] )
+              {
+                HType <- HTypeOpt2
+              }
+            }
+          } # end of dealing with HType for Diploid data 
+
+          firstAlleleIndex <- 1
+          secondAlleleIndex <- 2
+          # if the first two alleles are tied in terms of frequency, choose the one that matches the REF
+          # as the first one.    
+          if ( alleleSums[1] == alleleSums[2] & names(alleleSums)[2] == reportc[curRow, "REF"] ) 
+          {
+            firstAlleleIndex <- 2
+            secondAlleleIndex <- 1
+          }
+          
+          # if there was no heterozygous site containing the two most frequent alleles,
+          # such as would be the case for Haploid data:
+          if (is.na(HType))
+          {
+            # haploid data is formatted like "G/", diploid like "G/G"
+            # 1 == haploid, 2 == diploid.
+            if (HAPLOID_OR_DIPLOID == 1) {
+              HType <- paste0(names(alleleSums)[firstAlleleIndex],"/")
+              AType <- paste0(names(alleleSums)[secondAlleleIndex],"/")
+            }
+            else {
+              HType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
+              AType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
+            }
+          }
+          else
+          {
+            AType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
+            BType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
+          }
+          
+          reportc[curRow, s:ncol(reportc)] <- gsub(paste0("^",HType), "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
+          reportc[curRow, s:ncol(reportc)] <- gsub(paste0("^",AType), "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
+          H_Type[curRow] <- HType
+          A_Type[curRow] <- AType
+
+          if (!is.na(BType))
+          {      
+            reportc[curRow, s:ncol(reportc)] <- gsub(paste0("^",BType), "B", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
+            B_Type[curRow] <- BType
+            if (includeB_Type == FALSE) {            
+              includeB_Type <- TRUE
+            }
+          }
+
+          # deal with the potential problem if the data is haploid but the data was formatted in both haploid 
+          # and diploid format (e.g. both "T/" and "T/T", and HType is "T/", then the cases of "T/T" would be 
+          # updated to "HT"). This shouldn't be the case with the updated pipeline, but just in case.
           if (HAPLOID_OR_DIPLOID == 1) {
-            HType <- paste0(names(alleleSums)[firstAlleleIndex],"/")
-            AType <- paste0(names(alleleSums)[secondAlleleIndex],"/")
+            reportc[curRow, s:ncol(reportc)] <- gsub("^H[ACGTacgt]*$", "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
+            reportc[curRow, s:ncol(reportc)] <- gsub("^A[ACGTacgt]*$", "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
           }
-          else {
-            HType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
-            AType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
-          }
-        }
-        else
-        {
-          AType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
-          BType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
-        }
         
-        reportc[curRow, s:ncol(reportc)] <- gsub(HType, "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-        reportc[curRow, s:ncol(reportc)] <- gsub(AType, "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-        if (!is.na(BType))
-        {      
-          reportc[curRow, s:ncol(reportc)] <- gsub(BType, "B", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = TRUE)
-        }
 
-        # deal with the potential problem if the data is haploid but the data was formatted in both haploid 
-        # and diploid format (e.g. both "T/" and "T/T", and HType is "T/", then the cases of "T/T" would be 
-        # updated to "HT"). This shouldn't be the case with the updated pipeline, but just in case.
-        if (HAPLOID_OR_DIPLOID == 1) {
-          reportc[curRow, s:ncol(reportc)] <- gsub("H[ACGT]", "H", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
-          reportc[curRow, s:ncol(reportc)] <- gsub("A[ACGT]", "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
-        }
-      
+          # replace all elements consisting of any character(s) followed by a "/" followed by an optional character(s) with NA (i.e. all elements that haven't already been replaced with H, A or B):
+          reportc[curRow, s:ncol(reportc)] <- gsub("^.*/.*$", NA, as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
+        } # finish processing row that we keep
+      } 
 
-        # replace all elements consisting of a character followed by a "/" followed by an optional character(s) with NA (i.e. all elements that haven't already been replaced with H, A or B):
-        reportc[curRow, s:ncol(reportc)] <- gsub("^./.*$", NA, as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE) 
-      }
-
-      curRow <- curRow + 1
+    } # end for-loop
+    
+    firstDataColIndexInChiReport <- s
+    # add the new columns indicating which the H, A (and B) types are to the report 
+    if (includeB_Type == TRUE) {
+      reportc <- cbind(reportc[ ,1:(s-1)], H_Type, A_Type, B_Type, reportc[ ,s:ncol(reportc)])
+      firstDataColIndexInChiReport <- s + 3
+    } 
+    else {
+      reportc <- cbind(reportc[ ,1:(s-1)], H_Type, A_Type, reportc[ ,s:ncol(reportc)])
+      firstDataColIndexInChiReport <- s + 2
     }
 
-    write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE)
+    # remove all rows marked for removal
+    reportc <- reportc[!chiRowsToRemove, ] 
+
+    write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE, na="-")
 
     # #######################################################################
     #message("converting the chi square report to .linkage format")
@@ -437,7 +529,7 @@ if (GENERATE_CHI_SQ_REPORT == 1)
     # http://www.jurgott.org/linkage/LinkagePC.html#__RefHeading__137_1806185151
     # http://www.jurgott.org/linkage/LinkageUser.pdf
 
-    reportLinkageGenotypes <- reportc[ , s:ncol(reportc)]
+    reportLinkageGenotypes <- reportc[ , firstDataColIndexInChiReport:ncol(reportc)]
     reportLinkageGenotypes <- cbind(parent1 = c("A"), parent2 = c("H"), reportLinkageGenotypes) # add two samples to use as parents
     reportLinkageGenotypes <- t(reportLinkageGenotypes) # transpose the report (so it's columns are now rows)
 
@@ -446,6 +538,11 @@ if (GENERATE_CHI_SQ_REPORT == 1)
     reportLinkageGenotypes[reportLinkageGenotypes=="B"] <- "2 2"
     reportLinkageGenotypes[is.na(reportLinkageGenotypes)] <- "0 0"
     reportLinkageGenotypes[reportLinkageGenotypes=="-"] <- "0 0" # in case NA "-" has already been substituted with "-"
+    reportLinkageGenotypes[reportLinkageGenotypes==""] <- "0 0" # in case NA has been substituted with ""
+    reportLinkageGenotypes[reportLinkageGenotypes==" "] <- "0 0" # in case NA has been substituted with " "
+    reportLinkageGenotypes[reportLinkageGenotypes=="N/A"] <- "0 0" 
+    reportLinkageGenotypes[reportLinkageGenotypes=="na"] <- "0 0" 
+    reportLinkageGenotypes[reportLinkageGenotypes=="n/a"] <- "0 0" 
 
     reportLinkage <- cbind(family = c("chi"), id = c(paste0("S",(1:nrow(reportLinkageGenotypes))-2)), fatherId = c("P1"), motherId = c("P2"), gender = c(0), affectionStatus = c(0), reportLinkageGenotypes)
     reportLinkage[1,2:5] <- c("P1","0","0","1") # change id from S-1 to P1, no parents, male
