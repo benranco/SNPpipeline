@@ -31,11 +31,6 @@ wait
 
 Rscript ./scripts/report_gen_p2.R `pwd` $mafcutoff $generate_chi_sq_report $generate_probability_report $haploidOrDiploid $wereIndelsRemoved
 
-if [[ wereIndelsRemoved -eq 0 ]]
-then
-    Rscript ./scripts/tallyIndels.R `pwd`
-fi
-
 if [[ generate_depth_stats_report -eq 1 ]]
 then
     Rscript ./scripts/getDepthStats-parallel.R `pwd`

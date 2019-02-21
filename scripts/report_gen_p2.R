@@ -18,9 +18,6 @@ if (as.integer(args[6]) == 1) {
   HAS_INDELS <- FALSE
 }
 
-#debug arguments
-#path <- "/home/gosuzombie/Desktop/region38"
-#MAF_CUTOFF <- 0.3
 
 report <- data.frame()
 options(stringsAsFactors = FALSE, warn = 1)
@@ -61,21 +58,18 @@ for(single1 in list.files(paste0(path, "/reporttemp")))
 
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"), row.names=FALSE)
 
-
 # #######################################################################
-message("editing for cutoffs")
-  
-report <- as.data.frame(report)
-
-if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23 && !("COMBINED" %in% colnames(report))))
+if(!("COMBINED" %in% colnames(report)))
 {
-  doFullEditingForCutoffs <- TRUE
+  startCol <- 4
+  s <- 4 # we have both s and startCol because some legacy code used s as a variable name, and searching and replacing it would be tricky. Haven't done that yet.
 }else
 {
-  doFullEditingForCutoffs <- FALSE
-  message("not enough samples for full cutoff editing, just removing non-biallelic rows")
+  startCol <- 5
+  s <- 5
 }
 
+# #######################################################################
 # Function: isRowNonBiallelic - determines if the given row data has more than two alleles.
 # input:  a list of all the unique data items in the report. Each data item is formatted:
 #         "allele/allele" or possibly (for legacy purposes) "allele/". An allele is usually
@@ -99,19 +93,26 @@ isRowNonBiallelic <- function(namesOfGenotypesInRow)
 }
 
 
+# #######################################################################
+message("editing for cutoffs")
+  
+report <- as.data.frame(report)
+
+if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23 && !("COMBINED" %in% colnames(report))))
+{
+  doFullEditingForCutoffs <- TRUE
+}else
+{
+  doFullEditingForCutoffs <- FALSE
+  message("not enough samples for full cutoff editing, just removing non-biallelic rows")
+}
+
+
 numrows <- nrow(report)
 numColsInReport <- ncol(report)
 rowsToRemove <- NULL
 rowsToRemove <- logical(numrows) # initializes all to FALSE
 
-
-if(!("COMBINED" %in% colnames(report)))
-{
-  startCol <- 4
-}else
-{
-  startCol <- 5
-}
 
 numDataCols <- numColsInReport - (startCol - 1)
 
@@ -186,14 +187,8 @@ tallyAllelesInFactoredRow <- function(factoredRow) {
 
 # #######################################################################
 message("finding snp percentage per site")
-if(!("COMBINED" %in% colnames(report))) {
-  snpp <- report[, c(1:3)]
-  s <- 4
-} 
-else {
-  snpp <- report[, c(1:4)]
-  s <- 5
-}
+
+snpp <- report[, c(1:(startCol-1))] # the metadata columns
 
 numColsInReport <- ncol(report)
 snpp <- as.data.frame(snpp)
@@ -302,13 +297,16 @@ write.csv(mutationReport, paste(paste(path.expand(path), "reports", sep = "/"), 
 
 
 # #######################################################################
-# The chi sq report, and the .linkage file derived from it, will only be 
-# generated if GENERATE_CHI_SQ_REPORT == 1
-if (GENERATE_CHI_SQ_REPORT == 1)
-{
-
-    # #######################################################################
-    message("replacing alleles with characters for chi square test")
+# Function: replaceSnpsWithChiCodes
+# input: 
+#   reportc - the report (in data.frame format) whose SNP values are to be 
+#             replaced with "H", "A" or "B".
+#   doExtraFiltering - default FALSE. TRUE indicates do extra row filtering,
+#             which means removing rows with more than 20% NA, or if the most 
+#             frequent value occurs more than 95% of the time, or if the 
+#             second most frequent allele occurs less than 5% of the time.
+# return: the newly updated report.
+replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
 
     # New logic:
     # remove rows with NA in MORE than 20% of sites
@@ -323,13 +321,15 @@ if (GENERATE_CHI_SQ_REPORT == 1)
     # possible heterozygous genotypes (REF/ALT1, REF/ALT2, ALT1/ALT2); if I set the most frequently occuring one to
     # H, what do I set the other two to? They would also have three possible homozygous genotypes (REF/REF, ALT1/ALT1, ALT2/ALT2); if I set the most frequently occuring one to A and the second most to B, what do I set the other to?
 
-    reportc <- report
     chiRowsToRemove <- logical(nrow(reportc)) # initializes all to FALSE
     # new columns that will be added to the chi sq report
     H_Type <- character(nrow(reportc))
     A_Type <- character(nrow(reportc))
     B_Type <- character(nrow(reportc)) 
     includeB_Type <- FALSE # B type col will only be added to the report if there is a B type
+    H_Total <- numeric(nrow(reportc))
+    A_Total <- numeric(nrow(reportc))
+    B_Total <- numeric(nrow(reportc))
 
     numDataCols <- ncol(reportc) - (s-1)
 
@@ -338,7 +338,7 @@ if (GENERATE_CHI_SQ_REPORT == 1)
       datap <- reportc[curRow, s:ncol(reportc)]
 
       numNAsInRow <- sum(is.na(datap))
-      if( numNAsInRow/numDataCols > 0.2 ) 
+      if( doExtraFiltering && numNAsInRow/numDataCols > 0.2 ) 
       {
         # Remove the row if it has more than 20% NA's
         chiRowsToRemove[curRow] <- TRUE
@@ -355,12 +355,12 @@ if (GENERATE_CHI_SQ_REPORT == 1)
         alleleSums <- tallyAllelesInFactoredRow(factoredRow)
         alleleSums <- sort(alleleSums, decreasing = TRUE)
         
-        if ( alleleSums[1]/totalAlleleCount > 0.95 )
+        if ( doExtraFiltering && alleleSums[1]/totalAlleleCount > 0.95 )
         {
           # Remove the row if the most frequent allele occurs more than 95% of the time
           chiRowsToRemove[curRow] <- TRUE
         }
-        else if ( alleleSums[2]/totalAlleleCount < 0.05 )
+        else if ( doExtraFiltering && alleleSums[2]/totalAlleleCount < 0.05 )
         {
           # Remove the row if the second most frequent allele occurs less than 5% of the time
           chiRowsToRemove[curRow] <- TRUE
@@ -454,11 +454,14 @@ if (GENERATE_CHI_SQ_REPORT == 1)
           reportc[curRow, s:ncol(reportc)] <- gsub(paste0("^",AType), "A", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
           H_Type[curRow] <- HType
           A_Type[curRow] <- AType
+          H_Total[curRow] <- factoredRow[HType]
+          A_Total[curRow] <- factoredRow[AType]
 
           if (!is.na(BType))
           {      
             reportc[curRow, s:ncol(reportc)] <- gsub(paste0("^",BType), "B", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
             B_Type[curRow] <- BType
+            B_Total[curRow] <- factoredRow[BType]
             if (includeB_Type == FALSE) {            
               includeB_Type <- TRUE
             }
@@ -483,16 +486,37 @@ if (GENERATE_CHI_SQ_REPORT == 1)
     firstDataColIndexInChiReport <- s
     # add the new columns indicating which the H, A (and B) types are to the report 
     if (includeB_Type == TRUE) {
-      reportc <- cbind(reportc[ ,1:(s-1)], H_Type, A_Type, B_Type, reportc[ ,s:ncol(reportc)])
+      reportc <- cbind(reportc[ ,1:(s-1)], H_Type, A_Type, B_Type, H_Total, A_Total, B_Total, reportc[ ,s:ncol(reportc)])
       firstDataColIndexInChiReport <- s + 3
     } 
     else {
-      reportc <- cbind(reportc[ ,1:(s-1)], H_Type, A_Type, reportc[ ,s:ncol(reportc)])
+      reportc <- cbind(reportc[ ,1:(s-1)], H_Type, A_Type, H_Total, A_Total, reportc[ ,s:ncol(reportc)])
       firstDataColIndexInChiReport <- s + 2
     }
 
-    # remove all rows marked for removal
-    reportc <- reportc[!chiRowsToRemove, ] 
+    # remove all rows marked for removal (and return the final result to the function caller)
+    reportc[!chiRowsToRemove, ]  
+}
+# #######################################################################
+
+# #######################################################################
+if (HAS_INDELS) {
+  message("generating indels report from MAF report")
+
+  # keep only those rows whose REF value has more than one character in it (i.e. it's an indel):
+  indelReport <- report[ (nchar(report$REF) > 1), ]
+  indelReport <- replaceSnpsWithChiCodes(indelReport, doExtraFiltering=FALSE)
+
+  write.csv(indelReport, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_indels.csv", sep = "/"), row.names=FALSE, na="-")
+}
+
+# #######################################################################
+# The chi sq report, and the .linkage file derived from it, will only be 
+# generated if GENERATE_CHI_SQ_REPORT == 1
+if (GENERATE_CHI_SQ_REPORT == 1)
+{
+    message("replacing alleles with characters for chi square test")
+    reportc <- replaceSnpsWithChiCodes(report, doExtraFiltering=TRUE)
 
     write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE, na="-")
 
