@@ -98,6 +98,8 @@ datapoints=$(ls "./data" \
               | sed "s/_R2.fna//g" \
               | sed "s/_R1.fa//g" \
               | sed "s/_R2.fa//g" \
+              | sed "s/_R1.fq//g" \
+              | sed "s/_R2.fq//g" \
               | uniq)
 }
 
