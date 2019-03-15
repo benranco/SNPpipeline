@@ -281,7 +281,8 @@ mutationReport <- data.frame()
 for(sector in 1:length(names(fastaRef)))
 {
   sectorName <- attributes(fastaRef[[sector]])$name
-  numRowsForSectorName <- length(grep(sectorName, report[, "CHROM"], fixed=TRUE))
+  sectorNameRegEx <- paste0("^",sectorName,"$")
+  numRowsForSectorName <- length(grep(sectorNameRegEx, report[, "CHROM"], fixed=FALSE))
   numCharsInSequence <- nchar(fastaRef[[sector]][1])
 
   mutationReport[sectorName, "role"] <- attributes(fastaRef[[sector]])$Annot  
