@@ -19,8 +19,44 @@ if(!("COMBINED" %in% colnames(report)))
   s <- 5
 }
 
-increment <- 1
-#len <- table(is.na(report))["TRUE"][[1]]
+
+
+searchBAMfile <- function(fn, cmd){
+  tryCatch(
+  {        
+    out <- as.matrix(read.delim(pipe(cmd), sep = "\n"))
+    
+    if(substring(out[1,1], 1 ,1) == report[a, "REF"])
+    {
+      if(nrow(out) >= 2)
+      {
+        if(substring(out[2,1], 1 ,1) == "." || substring(out[2,1], 1 ,1) == ",")
+        {
+          # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
+          # whereas if it's diploid we follow the format in the .tab file of "A/A".
+          if (haploidOrDiploid == 1) {
+            report[a,b] <- paste0(report[a, "REF"], "/")
+          } else {
+            report[a,b] <- paste0(report[a, "REF"], "/", report[a, "REF"])
+          }
+        }
+      }
+    }
+    return(NA)
+  },
+  error=function(error_message) {
+    message("**************** parallel_process.R: An error occured trying to execute the following system command: ")
+    message(cmd)
+    message("And below is the error message from R:")
+    message(error_message)
+    message(" ")
+    message("We will skip trying to retrieve data from the BAM file for this particular row+sample.")
+    return(NA)
+  }
+  ) # end tryCatch
+}
+
+
 
 for(a in 1:nrow(report))
 {
@@ -35,29 +71,10 @@ for(a in 1:nrow(report))
         cmd <- paste0(path, "/tools/samtools-1.3.1/samtools tview ", path ,"/dataTemp/single/", fn ,
                       " ", path, "/reference/formatted_output.fasta -d T", 
                       ' -p \"', paste(report[a, "CHROM"], report[a, "POS"], sep = ":"), '"')
-        out <- as.matrix(read.delim(pipe(cmd), sep = "\n"))
-        
-        if(substring(out[1,1], 1 ,1) == report[a, "REF"])
-        {
-          if(nrow(out) >= 2)
-          {
-            if(substring(out[2,1], 1 ,1) == "." || substring(out[2,1], 1 ,1) == ",")
-            {
-              # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
-              # whereas if it's diploid we follow the format in the .tab file of "A/A".
-              if (haploidOrDiploid == 1) {
-                report[a,b] <- paste0(report[a, "REF"], "/")
-              } else {
-                report[a,b] <- paste0(report[a, "REF"], "/", report[a, "REF"])
-              }
-            }
-          }
-        }
-        #message(increment / len)
-        increment <- increment + 1
-      }
-    }
+        searchBAMfile(fn, cmd)
+      } 
+    } # end inner for-loop
   }
-}
+} # end outer for-loop
 
 saveRDS(report, file = paste0(path, "/reporttemp/", substr(file, 0, nchar(file) - 4), "_filled.Rds"))
