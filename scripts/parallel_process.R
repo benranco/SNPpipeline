@@ -21,12 +21,12 @@ if(!("COMBINED" %in% colnames(report)))
 
 
 
-searchBAMfile <- function(fn, cmd){
+searchBAMfile <- function(fn, cmd, rnum, cnum){
   tryCatch(
   {        
     out <- as.matrix(read.delim(pipe(cmd), sep = "\n"))
     
-    if(substring(out[1,1], 1 ,1) == report[a, "REF"])
+    if(substring(out[1,1], 1 ,1) == report[rnum, "REF"])
     {
       if(nrow(out) >= 2)
       {
@@ -35,9 +35,9 @@ searchBAMfile <- function(fn, cmd){
           # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
           # whereas if it's diploid we follow the format in the .tab file of "A/A".
           if (haploidOrDiploid == 1) {
-            report[a,b] <- paste0(report[a, "REF"], "/")
+            report[rnum,cnum] <- paste0(report[rnum, "REF"], "/")
           } else {
-            report[a,b] <- paste0(report[a, "REF"], "/", report[a, "REF"])
+            report[rnum,cnum] <- paste0(report[rnum, "REF"], "/", report[rnum, "REF"])
           }
         }
       }
@@ -71,7 +71,7 @@ for(a in 1:nrow(report))
         cmd <- paste0(path, "/tools/samtools-1.3.1/samtools tview ", path ,"/dataTemp/single/", fn ,
                       " ", path, "/reference/formatted_output.fasta -d T", 
                       ' -p \"', paste(report[a, "CHROM"], report[a, "POS"], sep = ":"), '"')
-        searchBAMfile(fn, cmd)
+        searchBAMfile(fn, cmd, a, b)
       } 
     } # end inner for-loop
   }
