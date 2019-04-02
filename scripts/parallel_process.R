@@ -19,47 +19,65 @@ if(!("COMBINED" %in% colnames(report)))
   s <- 5
 }
 
+#################################################
+printErr <- function(command, err) {
+    message("**************** parallel_process.R: An error occured trying to execute the following system command: ")
+    message(command)
+    message("And below is the error message from R:")
+    message(err)
+    message(" ")
+    message("We will skip trying to retrieve data from the BAM file for this particular row+sample.")
+    return(NA)
+}
 
-
-searchBAMfile <- function(fn, cmd, rnum, cnum){
+#################################################
+searchBAMfile <- function(fn, cmd, rnum, cnum, ref, ref_length){
   tryCatch(
   {        
     out <- as.matrix(read.delim(pipe(cmd), sep = "\n"))
     
-    if(substring(out[1,1], 1 ,1) == report[rnum, "REF"])
+    if(substring(out[1,1], 1 ,ref_length) == ref)
     {
       if(nrow(out) >= 2)
       {
-        if(substring(out[2,1], 1 ,1) == "." || substring(out[2,1], 1 ,1) == ",")
-        {
+        match <- TRUE
+        for (n in 1:ref_length) {
+          if( !( substring(out[2,1], n ,n) == "." || substring(out[2,1], n ,n) == "," ) )
+          {
+            match <- FALSE
+            break
+          }
+        } # end for-loop
+
+        if( match == TRUE ) 
+        {       
           # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
           # whereas if it's diploid we follow the format in the .tab file of "A/A".
           if (haploidOrDiploid == 1) {
-            report[rnum,cnum] <- paste0(report[rnum, "REF"], "/")
+            report[rnum,cnum] <- paste0(ref, "/")
           } else {
-            report[rnum,cnum] <- paste0(report[rnum, "REF"], "/", report[rnum, "REF"])
+            report[rnum,cnum] <- paste0(ref, "/", ref)
           }
         }
+
       }
     }
     return(NA)
   },
   error=function(error_message) {
-    message("**************** parallel_process.R: An error occured trying to execute the following system command: ")
-    message(cmd)
-    message("And below is the error message from R:")
-    message(error_message)
-    message(" ")
-    message("We will skip trying to retrieve data from the BAM file for this particular row+sample.")
+    printErr(cmd, error_message)
     return(NA)
   }
   ) # end tryCatch
 }
 
-
+#################################################
 
 for(a in 1:nrow(report))
 {
+  reference <- report[a, "REF"]
+  refLength <- nchar(reference)
+
   if(s <= ncol(report))
   {
     for(b in s:ncol(report))
@@ -71,7 +89,7 @@ for(a in 1:nrow(report))
         cmd <- paste0(path, "/tools/samtools-1.3.1/samtools tview ", path ,"/dataTemp/single/", fn ,
                       " ", path, "/reference/formatted_output.fasta -d T", 
                       ' -p \"', paste(report[a, "CHROM"], report[a, "POS"], sep = ":"), '"')
-        searchBAMfile(fn, cmd, a, b)
+        searchBAMfile(fn, cmd, a, b, reference, refLength)
       } 
     } # end inner for-loop
   }
