@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "running align.sh"
+echo "running align.sh ---" `date`
 
 input=$1
 ncore=$2
@@ -17,5 +17,5 @@ elif [[ $paired == 1 ]]; then
 	./tools/bowtie2-2.2.9/bowtie2 -p $ncore -x $ref -1 "./data/$(ls "./data" | grep $input | sed -n 1p)" -2 "./data/$(ls "./data" | grep $input | sed -n 2p)" --local --very-sensitive-local -S "./dataTemp/single/$input.sam"
 fi
 
-
+echo "finished ---" `date`
 echo "-------------------------------"

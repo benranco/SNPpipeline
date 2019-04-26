@@ -1,7 +1,7 @@
 #!/bin/bash
 #align all files
 
-echo "running align_all.sh"
+echo "running align_all.sh ---" `date`
 
 input=$1
 ncore=$2
@@ -60,4 +60,5 @@ elif [[ $paired == 1 ]]; then
     ./tools/bowtie2-2.2.9/bowtie2 -p $ncore -x $ref -1 $dataone -2 $datatwo --local --very-sensitive-local -S "./dataTemp/pooled/$input.sam"
 fi
 
+echo "finished ---" `date`
 echo "--------------------"

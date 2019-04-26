@@ -6,13 +6,13 @@ remove_indels=$3
 
 export PERL5LIB=`pwd`"/tools/vcftools/src/perl"
 
-echo "running post_process.sh"
+echo "running post_process.sh ---" `date`
 
 filterInputFilename="$1.vcf"
 
 if [[ $remove_indels == 1 ]]
 then
-  echo "removing indels"
+  echo "removing indels ---" `date`
   if [[ $single == 1 ]]
   then
       ./tools/vcftools/src/cpp/vcftools --vcf ./outputTemp/single/$1.vcf --remove-indels --recode --recode-INFO-all --out ./outputTemp/single/$1
@@ -28,7 +28,7 @@ fi
 
 echo "filterInputFilename : "$filterInputFilename
 
-echo "filtering using cutoffs"
+echo "filtering using cutoffs ---" `date`
 if [[ $single == 1 ]]
 then
 	cat ./outputTemp/single/$filterInputFilename | ./tools/vcftools/src/perl/vcf-annotate --filter Qual=5 > ./outputTemp/single/$1_cutoff
@@ -39,7 +39,7 @@ then
 	cat ./outputTemp/pooled/$filterInputFilename | ./tools/vcftools/src/perl/vcf-annotate --filter Qual=5 > ./outputTemp/pooled/$1_cutoff
 fi
 
-echo "tab conversion"
+echo "tab conversion ---" `date`
 
 if [[ $single == 1 ]]
 then
@@ -51,4 +51,4 @@ then
     ./tools/vcftools/src/perl/vcf-to-tab < ./outputTemp/pooled/$1_cutoff > ./output/pooled/$1.tab
 fi
 
-
+echo "finished ---" `date`

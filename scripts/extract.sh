@@ -1,7 +1,7 @@
 #!/bin/bash
 #get output from temp, find SNPs using FreeBayes
 
-echo "running extract.sh"
+echo "running extract.sh ---" `date`
 
 # the $1 input parameter is the input filename minus the extension
 ploidy=$2
@@ -18,15 +18,15 @@ fi
 
 input="./dataTemp/$path/$1.sam"
  
-echo "generate bam"
+echo "generate bam ---" `date`
 ./tools/samtools-1.3.1/samtools view -Sb $input > ./dataTemp/$path/$1.bam   
 rm -f $input 
 
-echo "sort bam"
+echo "sort bam ---" `date`
 ./tools/samtools-1.3.1/samtools sort -o ./dataTemp/$path/$1_sorted.bam ./dataTemp/$path/$1.bam 
 rm -f ./dataTemp/$path/$1.bam
 
-echo "index bam"
+echo "index bam ---" `date`
 ./tools/samtools-1.3.1/samtools index ./dataTemp/$path/$1_sorted.bam 
 
 binput="./dataTemp/$path/$1_sorted.bam"
@@ -34,7 +34,7 @@ binput="./dataTemp/$path/$1_sorted.bam"
 ref="./reference/formatted_output.fasta"
 #echo $1
 
-echo "find SNPs with freebayes"
+echo "find SNPs with freebayes ---" `date`
 
 if [ $default == 0 ]
 then
@@ -43,3 +43,5 @@ elif [ $default == 1 ]
 then 
 	./tools/freebayes/bin/freebayes -f $ref -p $ploidy $binput 1> ./outputTemp/$path/$1.vcf
 fi
+
+echo "finished ---" `date`

@@ -22,7 +22,7 @@ if (as.integer(args[6]) == 1) {
 report <- data.frame()
 options(stringsAsFactors = FALSE, warn = 1)
 
-message("running report generation part 2")
+message(paste0("running report generation part 2 --- ",Sys.time()))
 if(!require(seqinr))
 {
   install.packages('seqinr', repos='http://cran.us.r-project.org')
@@ -38,7 +38,7 @@ library(VariantAnnotation)
 library(seqinr)
 
 # #######################################################################
-message("reading and merging split data")
+message(paste0("reading and merging split data --- ",Sys.time()))
 for(single1 in list.files(paste0(path, "/reporttemp")))
 {
   if(grepl("filled.Rds", single1, fixed=TRUE))
@@ -94,7 +94,7 @@ isRowNonBiallelic <- function(namesOfGenotypesInRow)
 
 
 # #######################################################################
-message("editing for cutoffs")
+message(paste0("editing for cutoffs --- ",Sys.time()))
   
 report <- as.data.frame(report)
 
@@ -186,7 +186,7 @@ tallyAllelesInFactoredRow <- function(factoredRow) {
 }
 
 # #######################################################################
-message("finding snp percentage per site")
+message(paste0("finding snp percentage per site --- ",Sys.time()))
 
 snpp <- report[, c(1:(startCol-1))] # the metadata columns
 
@@ -264,7 +264,7 @@ for(curRow in 1:nrow(report))
 write.csv(snpp, paste(paste(path.expand(path), "reports", sep = "/"), "percentage_snps.csv", sep = "/"), row.names=FALSE)
 
 # #######################################################################
-message("generating MAF_cutoff_report")
+message(paste0("generating MAF_cutoff_report --- ",Sys.time()))
 
 snpp <- snpp[order(-snpp$MAF), ]
 snpp <- snpp[snpp$MAF >= MAF_CUTOFF,]
@@ -273,7 +273,7 @@ report <- report[rownames(snpp), ]
 write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report.csv", sep = "/"), row.names=FALSE)
 
 # #######################################################################
-message("generating site mutation percentage data")
+message(paste0("generating site mutation percentage data --- ",Sys.time()))
 
 fastaRef <- read.fasta(file = paste(path.expand(path), "reference/formatted_output.fasta", sep = "/"), as.string = TRUE)
 mutationReport <- data.frame()
@@ -502,7 +502,7 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
 
 # #######################################################################
 if (HAS_INDELS) {
-  message("generating indels report from MAF report")
+  message(paste0("generating indels report from MAF report --- ",Sys.time()))
 
   # keep only those rows whose REF value has more than one character in it (i.e. it's an indel):
   indelReport <- report[ (nchar(report$REF) > 1), ]
@@ -516,7 +516,7 @@ if (HAS_INDELS) {
 # generated if GENERATE_CHI_SQ_REPORT == 1
 if (GENERATE_CHI_SQ_REPORT == 1)
 {
-    message("replacing alleles with characters for chi square test")
+    message(paste0("replacing alleles with characters for chi square test --- ",Sys.time()))
     reportc <- replaceSnpsWithChiCodes(report, doExtraFiltering=TRUE)
 
     write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE, na="-")
@@ -584,7 +584,7 @@ if (GENERATE_CHI_SQ_REPORT == 1)
 if (GENERATE_PROBABILITY_REPORT == 1)
 {
 
-    message("generate probability values")
+    message(paste0("generate probability values --- ",Sys.time()))
 
     reportd <- report 
 
@@ -759,4 +759,4 @@ if (GENERATE_PROBABILITY_REPORT == 1)
 
 } # end of the optional block to generate the probability report.
 
-message("report_gen part 2 complete")
+message(paste0("report_gen part 2 complete --- ",Sys.time()))

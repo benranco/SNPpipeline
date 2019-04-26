@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "running gen_report.sh"
+echo "running gen_report.sh ---" `date`
 
 mafcutoff=$1
 generate_chi_sq_report=$2 
@@ -29,11 +29,16 @@ do
 done
 wait
 
+echo "finished parallel processing ---" `date`
+
 Rscript ./scripts/report_gen_p2.R `pwd` $mafcutoff $generate_chi_sq_report $generate_probability_report $haploidOrDiploid $wereIndelsRemoved
+
 
 if [[ generate_depth_stats_report -eq 1 ]]
 then
+    echo "getting depth statistics ---" `date`
     Rscript ./scripts/getDepthStats-parallel.R `pwd`
 fi
 
+echo "finished gen_report.sh ---" `date`
 

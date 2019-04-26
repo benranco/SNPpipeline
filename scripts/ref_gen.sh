@@ -3,7 +3,7 @@
 ncore=$1
 export PERL5LIB=$PERL5LIB:`pwd`/tools/vcftools/src/perl
 
-echo "running ref_gen.sh"
+echo "running ref_gen.sh ---" `date`
 
 rm -f ./reference/*.fai
 
@@ -53,3 +53,5 @@ echo "build new ref"
 
 echo "build fai for reference"
 ./tools/samtools-1.3.1/samtools faidx "./reference/formatted_output.fasta"
+
+echo "finished ---" `date`

@@ -137,6 +137,7 @@ then
         echo "running single"
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
+                echo "Processing" $datapoint "---" `date`
                 ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $default $paired $remove_indels
             done
         elif [[ paired -eq 1 ]]; then
@@ -144,6 +145,7 @@ then
             formatPairedFileNames $datapoints
             for datapoint in $datapoints
             do
+                echo "Processing" $datapoint "---" `date`
                 ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $default $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
@@ -160,6 +162,7 @@ then
         echo "running single"
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
+                echo "Processing" $datapoint "---" `date`
                 ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $default $paired $remove_indels 
             done
         elif [[ paired -eq 1 ]]; then
@@ -167,6 +170,7 @@ then
             formatPairedFileNames $datapoints
             for datapoint in $datapoints
             do
+                echo "Processing" $datapoint "---" `date`
                 ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $default $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
@@ -175,13 +179,13 @@ then
         wait
     fi
 
-    echo "Finished processing. Have not yet generated reports (scripts/gen_report.sh)."
+    echo "Finished processing. Have not yet generated reports (scripts/gen_report.sh). ---" `date`
 fi
 
 # running the second half of the pipeline, report generation
 if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 3 ]]
 then
-    echo "Generating reports."
+    echo "Generating reports. ---" `date`
     ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singleploidy $remove_indels
 fi
 
