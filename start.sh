@@ -39,6 +39,9 @@ generate_probability_report=0
 # (1) yes, (0) no. This can be very time consuming.
 generate_depth_stats_report=0
 
+# The pipeline will assume it can use all available cpu's for the bowtie alignment except the number you specify here (to make it easier to coexist with other processes you might be running on the computer).
+freeCpus=1
+
 # Scroll down to see the code.
 
 
@@ -113,9 +116,9 @@ then
 fi
 
 if [ $single -eq 3 ]; then
-	ncore="$(( ($(grep -c ^processor /proc/cpuinfo) -4)/2 ))"
+	ncore="$(( ($(grep -c ^processor /proc/cpuinfo) - $freeCpus)/2 ))"
 else
-	ncore="$(( ($(grep -c ^processor /proc/cpuinfo) -4)))"
+	ncore="$(( ($(grep -c ^processor /proc/cpuinfo) - $freeCpus)))"
 fi
 
 if [ $ncore -lt 1 ]
