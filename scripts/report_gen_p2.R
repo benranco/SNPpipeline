@@ -554,7 +554,7 @@ if (GENERATE_CHI_SQ_REPORT == 1)
     # http://www.jurgott.org/linkage/LinkagePC.html#__RefHeading__137_1806185151
     # http://www.jurgott.org/linkage/LinkageUser.pdf
 
-    reportLinkageGenotypes <- reportc[ , firstDataColIndexInChiReport:ncol(reportc)]
+    reportLinkageGenotypes <- reportc[ , s:ncol(reportc)]
     reportLinkageGenotypes <- cbind(parent1 = c("A"), parent2 = c("H"), reportLinkageGenotypes) # add two samples to use as parents
     reportLinkageGenotypes <- t(reportLinkageGenotypes) # transpose the report (so it's columns are now rows)
 
