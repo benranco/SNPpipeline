@@ -498,28 +498,10 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
     # remove all rows marked for removal (and return the final result to the function caller)
     reportc[!chiRowsToRemove, ]  
 }
-# #######################################################################
 
 # #######################################################################
-if (HAS_INDELS) {
-  message(paste0("generating indels report from MAF report --- ",Sys.time()))
-
-  # keep only those rows whose REF value has more than one character in it (i.e. it's an indel):
-  indelReport <- report[ (nchar(report$REF) > 1), ]
-  indelReport <- replaceSnpsWithChiCodes(indelReport, doExtraFiltering=FALSE)
-
-  write.csv(indelReport, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_indels.csv", sep = "/"), row.names=FALSE, na="-")
-}
-
-# #######################################################################
-# The chi sq report, and the .linkage file derived from it, will only be 
-# generated if GENERATE_CHI_SQ_REPORT == 1
-if (GENERATE_CHI_SQ_REPORT == 1)
-{
-    message(paste0("replacing alleles with characters for chi square test --- ",Sys.time()))
-    reportc <- replaceSnpsWithChiCodes(report, doExtraFiltering=TRUE)
-
-    write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE, na="-")
+# Function: writeLinkageReport
+writeLinkageReport <- function(chiInputReport, outputFileName) {
 
     # #######################################################################
     #message("converting the chi square report to .linkage format")
@@ -554,7 +536,7 @@ if (GENERATE_CHI_SQ_REPORT == 1)
     # http://www.jurgott.org/linkage/LinkagePC.html#__RefHeading__137_1806185151
     # http://www.jurgott.org/linkage/LinkageUser.pdf
 
-    reportLinkageGenotypes <- reportc[ , s:ncol(reportc)]
+    reportLinkageGenotypes <- chiInputReport[ , s:ncol(chiInputReport)]
     reportLinkageGenotypes <- cbind(parent1 = c("A"), parent2 = c("H"), reportLinkageGenotypes) # add two samples to use as parents
     reportLinkageGenotypes <- t(reportLinkageGenotypes) # transpose the report (so it's columns are now rows)
 
@@ -573,8 +555,36 @@ if (GENERATE_CHI_SQ_REPORT == 1)
     reportLinkage[1,2:5] <- c("P1","0","0","1") # change id from S-1 to P1, no parents, male
     reportLinkage[2,2:5] <- c("P2","0","0","2") # change id from S0 to P2, no parents, female
 
-    write.table(reportLinkage, file= paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.linkage", sep = "/"), append=FALSE, quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
+    write.table(reportLinkage, file= paste(paste(path.expand(path), "reports", sep = "/"), outputFileName, sep = "/"), append=FALSE, quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
 
+} # end of function writeLinkageReport
+
+
+# #######################################################################
+if (HAS_INDELS) {
+  message(paste0("generating indels report from MAF report --- ",Sys.time()))
+
+  # keep only those rows whose REF value has more than one character in it (i.e. it's an indel):
+  indelReport <- report[ (nchar(report$REF) > 1), ]
+  indelReport <- replaceSnpsWithChiCodes(indelReport, doExtraFiltering=FALSE)
+
+  write.csv(indelReport, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_indels.csv", sep = "/"), row.names=FALSE, na="-")
+}
+
+# #######################################################################
+# The chi sq report, and the .linkage file derived from it, will only be 
+# generated if GENERATE_CHI_SQ_REPORT == 1
+if (GENERATE_CHI_SQ_REPORT == 1)
+{
+    message(paste0("replacing alleles with characters for chi square test, with extra filtering --- ",Sys.time()))
+    reportcfiltered <- replaceSnpsWithChiCodes(report, doExtraFiltering=TRUE)
+    write.csv(reportcfiltered, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi_extraFiltered.csv", sep = "/"), row.names=FALSE, na="-")    
+    writeLinkageReport(reportcfiltered, "MAF_cutoff_report_chi_extraFiltered.linkage")
+
+    message(paste0("replacing alleles with characters for chi square test --- ",Sys.time()))
+    reportc <- replaceSnpsWithChiCodes(report, doExtraFiltering=FALSE)
+    write.csv(reportc, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi.csv", sep = "/"), row.names=FALSE, na="-")
+    writeLinkageReport(reportcfiltered, "MAF_cutoff_report_chi.linkage")
 
 } # end of the optional block to generate the chi sq report, and the .linkage file derived from it.
 
