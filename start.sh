@@ -20,10 +20,10 @@ pooledploidy=2
 default=1
 
 #maf cutoff 
-mafcut=0.3
+mafcut=0.05
 
 # (1) remove indels after finding SNPs, (0) don't remove indels after finding SNPs
-remove_indels=1
+remove_indels=0
 
 # (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
 what_to_run=1
@@ -37,7 +37,7 @@ generate_chi_sq_report=1
 generate_probability_report=0
 
 # (1) yes, (0) no. This can be very time consuming.
-generate_depth_stats_report=0
+generate_depth_stats_report=1
 
 # The pipeline will assume it can use all available cpu's for the bowtie alignment except the number you specify here (to make it easier to coexist with other processes you might be running on the computer).
 freeCpus=1
