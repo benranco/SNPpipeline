@@ -13,6 +13,10 @@ then
     exitCode=$?
 fi
 
+#make sure data isnt modified
+chmod 555 ./data/* || echo "Just tried to change permissions of all the raw data to read+execute so as to avoid accidentally modifying it, but failed, which is fine because it means I don't have permissions to change their permissions, so I don't have permissions to actually modify their contents either."
+
+
 exit $exitCode
 
 

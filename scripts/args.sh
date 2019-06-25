@@ -12,9 +12,6 @@ remove_indels=$8
 
 #calling methods required for future calls 
 
-#make sure data isnt modified
-chmod 555 ./data/*
-
 if [ $single == 1 ]
 then
     bash ./scripts/align.sh $datapoint $ncore $paired > ./logs/single/$datapoint"_align.log" 2>&1 
