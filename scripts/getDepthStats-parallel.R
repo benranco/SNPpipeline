@@ -24,7 +24,7 @@ vcfFilesSubDir <- "outputTemp/single"
 cutoffFileNamePostFix <- "_cutoff"
 
 bamFilesSubDir <- "dataTemp/single"
-bamFileNamePostFix <- "_sorted.bam"
+bamFileNamePostFix <- "_sorted_markDup.bam"
 
 depthFilesSubDir <- "dataTemp/depthfiles"
 depthFileNamePostFix <- "_depth.txt"

@@ -26,10 +26,15 @@ echo "sort bam ---" `date`
 ./tools/samtools-1.3.1/samtools sort -o ./dataTemp/$path/$1_sorted.bam ./dataTemp/$path/$1.bam 
 rm -f ./dataTemp/$path/$1.bam
 
-echo "index bam ---" `date`
-./tools/samtools-1.3.1/samtools index ./dataTemp/$path/$1_sorted.bam 
+echo "mark duplicates ---" `date`
+java -jar ./tools/picard-2.20.7/picard.jar MarkDuplicates I=./dataTemp/$path/$1_sorted.bam O=./dataTemp/$path/$1_sorted_markDup.bam M=./dataTemp/$path/$1_sorted_markDup_metrics.txt > ./dataTemp/$path/$1_sorted_markDup_log.txt
+rm -f ./dataTemp/$path/$1_sorted.bam
 
-binput="./dataTemp/$path/$1_sorted.bam"
+echo "index bam ---" `date`
+./tools/samtools-1.3.1/samtools index ./dataTemp/$path/$1_sorted_markDup.bam 
+
+binput="./dataTemp/$path/$1_sorted_markDup.bam"
+
 #echo $binput
 ref="./reference/formatted_output.fasta"
 #echo $1

@@ -85,7 +85,7 @@ for(a in 1:nrow(report))
       if(is.na(report[a,b]))
       {
         fn <- paste(substr(colnames(report)[b], 0 , nchar(colnames(report)[b]) - 4), 
-                    "_sorted.bam", sep = "")
+                    "_sorted_markDup.bam", sep = "")
         cmd <- paste0(path, "/tools/samtools-1.3.1/samtools tview ", path ,"/dataTemp/single/", fn ,
                       " ", path, "/reference/formatted_output.fasta -d T", 
                       ' -p \"', paste(report[a, "CHROM"], report[a, "POS"], sep = ":"), '"')
