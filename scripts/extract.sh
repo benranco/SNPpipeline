@@ -43,10 +43,16 @@ echo "find SNPs with freebayes ---" `date`
 
 if [ $default == 0 ]
 then
+  # parameters from a research paper
 	./tools/freebayes/bin/freebayes -f $ref -p $ploidy --pvar 0.75 --min-alternate-count 1 --theta 0.01  --use-best-n-alleles 4 --min-alternate-fraction 0.8 $binput 1> ./outputTemp/$path/$1.vcf
 elif [ $default == 1 ]
 then 
+  # default params for single raw data files
 	./tools/freebayes/bin/freebayes -f $ref -p $ploidy $binput 1> ./outputTemp/$path/$1.vcf
+elif [ $default == 2 ]
+then 
+  # default params for pooled raw data files
+	./tools/freebayes/bin/freebayes -f $ref -p $ploidy --min-alternate-fraction 0.001 $binput 1> ./outputTemp/$path/$1.vcf
 fi
 
 echo "finished ---" `date`

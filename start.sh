@@ -16,8 +16,8 @@ singleploidy=1
 pooledploidy=2
 
 
-#use default freebayes parameters or not: (3) custom (not implemented), (1) default, (0) parameters from research paper
-default=1
+#use default freebayes parameters or not: (3) custom (not implemented), (1) default params for single raw data files, (2) default params for pooled raw data files (only difference is --min-alternate-fraction is set to 0.001 instead of the default of 0.2, (0) parameters from research paper
+freebayesParams=1
 
 #maf cutoff 
 mafcut=0.05
@@ -138,7 +138,7 @@ then
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
                 echo "Processing" $datapoint "---" `date`
-                ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $default $paired $remove_indels
+                ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $freebayesParams $paired $remove_indels
             done
         elif [[ paired -eq 1 ]]; then
             datapoints=""
@@ -146,7 +146,7 @@ then
             for datapoint in $datapoints
             do
                 echo "Processing" $datapoint "---" `date`
-                ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $default $paired $remove_indels
+                ./scripts/args.sh $datapoint $name $single $singleploidy $ncore $freebayesParams $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
             done
@@ -154,16 +154,16 @@ then
     elif [[ single -eq 2 ]]
     then
         echo "running pooled"
-        ./scripts/args.sh $name $name $single $pooledploidy $ncore $default $paired $remove_indels
+        ./scripts/args.sh $name $name $single $pooledploidy $ncore $freebayesParams $paired $remove_indels
     elif [[ single -eq 3 ]]
     then
         echo "running pooled in background"
-        ./scripts/args.sh $name $name 2 $pooledploidy $ncore $default $paired $remove_indels &
+        ./scripts/args.sh $name $name 2 $pooledploidy $ncore $freebayesParams $paired $remove_indels &
         echo "running single"
         if [[ paired -eq 0 ]]; then
             for datapoint in $(ls "./data"); do
                 echo "Processing" $datapoint "---" `date`
-                ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $default $paired $remove_indels 
+                ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $freebayesParams $paired $remove_indels 
             done
         elif [[ paired -eq 1 ]]; then
             datapoints=""
@@ -171,7 +171,7 @@ then
             for datapoint in $datapoints
             do
                 echo "Processing" $datapoint "---" `date`
-                ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $default $paired $remove_indels
+                ./scripts/args.sh $datapoint $name 1 $singleploidy $ncore $freebayesParams $paired $remove_indels
                 #sync
                 #echo 1 > /proc/sys/vm/drop_caches
             done
