@@ -34,7 +34,7 @@ fi
 if [ "$ref" != "formatted_output.fasta" ]
 then
     echo "formatting fasta file to consistent line lengths"
-    java -jar ./tools/picard-tools-2.3.0/picard.jar NormalizeFasta I=./reference/$ref O=./reference/"formatted_output.fasta" LINE_LENGTH=60 
+    java -jar ./tools/picard-2.20.7/picard.jar NormalizeFasta I=./reference/$ref O=./reference/"formatted_output.fasta" LINE_LENGTH=60 
     #mv ./reference/$ref ./reference/"formatted_output.fasta"
 fi
 
