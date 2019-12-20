@@ -49,7 +49,14 @@ samtoolsPathAndExecutable <- paste(path.expand(path), "tools/samtools-1.3.1/samt
 #             - find the row in the depth file with the CHROM id and POS, and save its depth value in both 
 #               copy 1 and copy 2 tables, using NA for the other three values in copy 2.
 # - write output to .csv files
-
+#
+#
+# Here are the definitions from the VCF file of the depth data we've extracted:
+#   DP  = "Total read depth at the locus"
+#   DPB = "Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype"
+#   RO  = "Reference allele observation count, with partial observations recorded fractionally"
+#   AO  = "Alternate allele observations, with partial observations recorded fractionally"
+###########################################################
 if(!require(doParallel))
 {
   install.packages('doParallel', repos='http://cran.us.r-project.org')
