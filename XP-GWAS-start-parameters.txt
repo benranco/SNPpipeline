@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# For further documentation on this pipeline, see the README.md file.
+
+#call this pipeline something unique, replace spaces with underlines
+name="junjun_pipeline"
+
+# paired input raw data files (e.g. R1 & R2) vs unpaired files: (1) paired, (0) unpaired
+paired=1
+
+# whether each sample has its own raw data file(s), or samples are pooled into combined input file(s): (1) single, (2) pooled, (3) both
+single=1
+
+#ploidy values for single and pooled runs: (1) haploid, (2) diploid
+singleploidy=2
+pooledploidy=2
+
+
+#use default freebayes parameters or not: (3) custom (not implemented), (1) default params for single raw data files, (2) default params for pooled raw data files (only difference is --min-alternate-fraction is set to 0.001 instead of the default of 0.2, (0) parameters from research paper
+freebayesParams=2
+
+#maf cutoff 
+mafcut=0.0001
+
+# (1) remove indels after finding SNPs, (0) don't remove indels after finding SNPs
+remove_indels=1
+
+# (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
+what_to_run=1
+
+# some optional reports which you might choose not to generate in order to save time:
+
+# (1) yes, (0) no
+generate_chi_sq_report=0
+
+# (1) yes, (0) no. This can be very time consuming, and as yet has not been useful.
+generate_probability_report=0
+
+# (1) yes, (0) no. This can be very time consuming.
+generate_depth_stats_report=1
+
+# The pipeline will assume it can use all available cpu's for the bowtie alignment except the number you specify here (to make it easier to coexist with other processes you might be running on the computer).
+freeCpus=1
+
+# Scroll down to see the code.
+
+
