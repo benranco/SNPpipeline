@@ -66,9 +66,9 @@ library(doParallel)
 
 # determine the number of cores we can use for parallel processing
 ncore <- as.numeric(system2( "grep", c("-c", "^processor", "/proc/cpuinfo"), stdout=TRUE, stderr=NULL ))
-if (ncore > 4)
+if (ncore > 1)
 {
-  ncore <- ncore - 4 # leave some processor cores free for other applications
+  ncore <- ncore - 1 # leave some processor cores free for other applications
 }
 write(paste0("Number of cores to use for parallel processing: ",ncore), stdout())
 
