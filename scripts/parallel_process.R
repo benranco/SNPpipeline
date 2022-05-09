@@ -34,15 +34,27 @@ printErr <- function(command, err) {
 searchBAMfile <- function(fn, cmd, rnum, cnum, ref, ref_length){
   tryCatch(
   {        
-    out <- as.matrix(read.delim(pipe(cmd), sep = "\n"))
+    #out <- as.matrix(read.delim(pipe(cmd), sep = "\n"))
     
-    if(substring(out[1,1], 1 ,ref_length) == ref)
+    # Update 2022-04-04: Some updates were made to this script to deal with an error reading the output of the 
+    # samtools tview command. Updates are noted.
+    
+    # Update 2022-04-04: added header=FALSE to read.delim to deal with the R error "duplicate 'row.names' are not allowed"
+    out <- as.matrix(read.delim(pipe(cmd), header=FALSE, sep = "\n"))
+    
+    # Update 2022-04-04: In the following three if statements, I had to increment the row number by one to 
+    # account for the fact that the samtools tview output was producing an empty line for its first line  
+    # (if the are cases in which it returns a header line instead of an empty whitespace line this would 
+    # also work, since we read it with header=FALSE). 
+    #
+    # So, occurences of row 1 were changed to row 2, and occurences of row 2 were changed to row 3. 
+    if(substring(out[2,1], 1 ,ref_length) == ref)
     {
-      if(nrow(out) >= 2)
+      if(nrow(out) >= 3)
       {
         match <- TRUE
         for (n in 1:ref_length) {
-          if( !( substring(out[2,1], n ,n) == "." || substring(out[2,1], n ,n) == "," ) )
+          if( !( substring(out[3,1], n ,n) == "." || substring(out[3,1], n ,n) == "," ) )
           {
             match <- FALSE
             break
@@ -53,10 +65,12 @@ searchBAMfile <- function(fn, cmd, rnum, cnum, ref, ref_length){
         {       
           # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
           # whereas if it's diploid we follow the format in the .tab file of "A/A".
+          
+          # Update 2022-04-04: Fixed a bug by using <<-, previously was using <- which doesn't assign to a global variable.
           if (haploidOrDiploid == 1) {
-            report[rnum,cnum] <- paste0(ref, "/")
+            report[rnum,cnum] <<- paste0(ref, "/")
           } else {
-            report[rnum,cnum] <- paste0(ref, "/", ref)
+            report[rnum,cnum] <<- paste0(ref, "/", ref)
           }
         }
 
