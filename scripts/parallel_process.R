@@ -110,6 +110,9 @@ processTViewOut <- function(tview, rnum, cnum, ref){
             } else if(x == "W" || x == "S" || x == "M" || x == "K" || x == "R" || x == "Y") {
               abort <- TRUE
               break;
+            } else {
+              abort <- TRUE
+              break;
             }
           } else { # diploid
             if(x == "." || x == ",") {
@@ -173,6 +176,9 @@ processTViewOut <- function(tview, rnum, cnum, ref){
                 firstHalf <- paste0(firstHalf, "C") 
                 secondHalf <- paste0(secondHalf, "T") 
               }
+            } else {
+              abort <- TRUE
+              break;
             }
           } 
 
