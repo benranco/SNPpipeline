@@ -268,7 +268,7 @@ testProcessTViewOut <- function() {
               "U.Y..............A....C....R......YK............G........................R......",
               "G.....*..........A....C....G......C.............G..............................."))
     processTViewOut(data5, 3, 5, "A")
-    write(paste0("This should be TRUE: ", is.na(report[1,4])), stdout())
+    write(paste0("This should be TRUE: ", is.na(report[3,5])), stdout())
     
     #report
     
@@ -296,13 +296,13 @@ testProcessTViewOut <- function() {
     processTViewOut(data4, 4, 4, "AATATC")
     write(paste0("This should be TRUE: ", "GACAATC/" == report[4,4]), stdout())
     
-    processTViewOut(data5, 3, 5, "A")
-    write(paste0("This should be TRUE: ", is.na(report[1,4])), stdout())
-    
     # extra test:
     processTViewOut(data4, 4, 5, "A")
     write(paste0("This should be TRUE: ", "G/" == report[4,5]), stdout())
-    
+
+    processTViewOut(data5, 3, 5, "A")
+    write(paste0("This should be TRUE: ", is.na(report[3,5])), stdout())
+        
     #report
     
     # set global variables back to whatever real data may have been in it:
