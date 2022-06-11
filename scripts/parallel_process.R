@@ -110,7 +110,7 @@ processTViewOut <- function(tview, rnum, cnum, ref){
             } else if(x == "W" || x == "S" || x == "M" || x == "K" || x == "R" || x == "Y") {
               abort <- TRUE
               break;
-            } else {
+            } else if(x != " ") {
               abort <- TRUE
               break;
             }
@@ -176,7 +176,7 @@ processTViewOut <- function(tview, rnum, cnum, ref){
                 firstHalf <- paste0(firstHalf, "C") 
                 secondHalf <- paste0(secondHalf, "T") 
               }
-            } else {
+            } else if(x != " ") {
               abort <- TRUE
               break;
             }
@@ -262,6 +262,14 @@ testProcessTViewOut <- function() {
     processTViewOut(data4, 4, 4, "AATATC")
     write(paste0("This should be TRUE: ", "GACAATC/GACAATC" == report[4,4]), stdout())
     
+    # Testing for an unsupported character "U", this should give NA:
+    data5 <- as.matrix(c("151       161       171       181       191       201       211       221       ",
+              "AATGAATTTCCACATGCCTTTGAATCTACTTCTATGCTCACTTATGGCATTGGGAGTTTGGACGGGTGTTGGGAAGGAGA",
+              "U.Y..............A....C....R......YK............G........................R......",
+              "G.....*..........A....C....G......C.............G..............................."))
+    processTViewOut(data5, 3, 5, "A")
+    write(paste0("This should be TRUE: ", is.na(report[1,4])), stdout())
+    
     #report
     
     message("-----------------------")
@@ -288,6 +296,9 @@ testProcessTViewOut <- function() {
     processTViewOut(data4, 4, 4, "AATATC")
     write(paste0("This should be TRUE: ", "GACAATC/" == report[4,4]), stdout())
     
+    processTViewOut(data5, 3, 5, "A")
+    write(paste0("This should be TRUE: ", is.na(report[1,4])), stdout())
+    
     # extra test:
     processTViewOut(data4, 4, 5, "A")
     write(paste0("This should be TRUE: ", "G/" == report[4,5]), stdout())
@@ -303,6 +314,9 @@ testProcessTViewOut <- function() {
 
 #################################################
 # Execution begins here (above are functions):
+
+# To test the processTViewOut function, just run source('parallel_process.R') from within an
+# R session, it'll give you an error from the below code, but ignore it, then run testProcessTViewOut().
 
 message(paste0("parallel_process: looking up NA data on ", file))
 report <- readRDS(paste0(path, "/reporttemp/", file))
