@@ -110,7 +110,7 @@ processTViewOut <- function(tview, rnum, cnum, ref){
             } else if(x == "W" || x == "S" || x == "M" || x == "K" || x == "R" || x == "Y") {
               abort <- TRUE
               break;
-            } else if(x != " ") {
+            } else if(x != " " && x != "*") {
               abort <- TRUE
               break;
             }
@@ -176,16 +176,16 @@ processTViewOut <- function(tview, rnum, cnum, ref){
                 firstHalf <- paste0(firstHalf, "C") 
                 secondHalf <- paste0(secondHalf, "T") 
               }
-            } else if(x != " ") {
+            } else if(x != " " && x != "*") {
               abort <- TRUE
               break;
             }
           } 
-
+          
         } # end for-loop
 
 
-        if (!abort) {
+        if (!abort && firstHalf != "") {
           # 1 == haploid, 2 == diploid. If it's haploid, we follow the format in the .tab file of "A/",
           # whereas if it's diploid we follow the format in the .tab file of "A/A".
           
