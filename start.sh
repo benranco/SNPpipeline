@@ -91,6 +91,8 @@ datapoints=$(ls "./data" \
               | sed "s/_R2.fna.gz//g" \
               | sed "s/_R1.fa.gz//g" \
               | sed "s/_R2.fa.gz//g" \
+              | sed "s/_R1.fq.gz//g" \
+              | sed "s/_R2.fq.gz//g" \
               | sed "s/_R1.fastq//g" \
               | sed "s/_R2.fastq//g" \
               | sed "s/_R1.fasta//g" \
