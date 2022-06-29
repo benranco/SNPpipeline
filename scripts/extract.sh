@@ -32,7 +32,7 @@ echo "mark duplicates ---" `date`
 maxf=$(( ($(ulimit -n) - 24) ))
 if [ -z "$maxf" ]; then maxf=1000; fi
 
-java -Djava.io.tmpdir=./dataTemp/picardTmp -jar ./tools/picard-2.20.7/picard.jar MarkDuplicates TMP_DIR=./dataTemp/picardTmp  MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=$maxf I=./dataTemp/$path/$1_sorted.bam O=./dataTemp/$path/$1_sorted_markDup.bam M=./dataTemp/$path/$1_sorted_markDup_metrics.txt > ./dataTemp/$path/$1_sorted_markDup_log.txt
+java -Djava.io.tmpdir=./dataTemp/picardTmp -jar ./tools/picard-2.20.7/picard.jar MarkDuplicates TMP_DIR=./dataTemp/picardTmp  MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=$maxf I=./dataTemp/$path/$1_sorted.bam O=./dataTemp/$path/$1_sorted_markDup.bam M=./dataTemp/$path/$1_sorted_markDup_metrics.txt 
 rm -f ./dataTemp/$path/$1_sorted.bam
 
 echo "index bam ---" `date`
