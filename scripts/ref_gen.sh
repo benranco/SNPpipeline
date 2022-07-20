@@ -14,13 +14,15 @@ do
    ref="$f"
 done 
 
+mkdir ./reference/originalFastaFiles
+
 if [[ $c > 1 ]]
 then
     echo "found multiple references, concat to one file"
     cat ./reference/* >> ./reference/output.fasta
     for df in $(ls ./reference | grep -v output.fasta) 
     do
-	rm ./reference/$df
+	    mv ./reference/$df ./reference/originalFastaFiles/
     done
     ref="output.fasta"    
 elif [[ $c == 0 ]]
@@ -35,11 +37,10 @@ if [ "$ref" != "formatted_output.fasta" ]
 then
     echo "formatting fasta file to consistent line lengths"
     java -jar ./tools/picard-2.20.7/picard.jar NormalizeFasta I=./reference/$ref O=./reference/"formatted_output.fasta" LINE_LENGTH=60 
-    #mv ./reference/$ref ./reference/"formatted_output.fasta"
+
 fi
 
 echo "move original fasta file(s)"
-mkdir ./reference/originalFastaFiles
 for dfa in $(ls ./reference | grep -v "formatted_output.fasta")
 do
     mv ./reference/$dfa ./reference/originalFastaFiles/
