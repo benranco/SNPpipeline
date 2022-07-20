@@ -25,7 +25,10 @@ mafcut=0.05
 # (1) remove indels after finding SNPs, (0) don't remove indels after finding SNPs
 remove_indels=0
 
-# (1) run the full pipeline, (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
+# (1) run the full pipeline
+# (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), 
+# (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
+# (4) just generate reports beginning AFTER the filled_report.csv, assuming it has already been generated.
 what_to_run=1
 
 # some optional reports which you might choose not to generate in order to save time:
@@ -117,6 +120,8 @@ then
     exit $?
 fi
 
+./scripts/cleanup.sh $what_to_run
+
 if [ $single -eq 3 ]; then
 	ncore="$(( ($(grep -c ^processor /proc/cpuinfo) - $freeCpus)/2 ))"
 else
@@ -131,7 +136,6 @@ fi
 # running the first half of the pipeline
 if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 2 ]]
 then
-    ./scripts/cleanup.sh
     ./scripts/ref_gen.sh $ncore > ./logs/$name"_reference_generation.log" 2>&1
 
     if [[ single -eq 1 ]]
@@ -185,10 +189,10 @@ then
 fi
 
 # running the second half of the pipeline, report generation
-if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 3 ]]
+if [[ what_to_run -eq 1 ]] || [[ what_to_run -eq 3 ]] || [[ what_to_run -eq 4 ]]
 then
     echo "Generating reports. ---" `date`
-    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singleploidy $remove_indels
+    ./scripts/gen_report.sh $mafcut $generate_chi_sq_report $generate_probability_report $generate_depth_stats_report $singleploidy $remove_indels $what_to_run
 fi
 
 

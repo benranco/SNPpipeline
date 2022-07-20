@@ -121,11 +121,12 @@ parallelResults <- foreach (colNum=startingCol:ncol(mafReport)) %dopar% {
   depthOutputFileName <- paste0(sampleName, depthFileNamePostFix)
   depthOutputFilePath <- paste(path.expand(path), depthFilesSubDir, depthOutputFileName, sep="/")
 
-  bamFileName <- paste0(sampleName, bamFileNamePostFix)
-  bamFilePath <- paste(path.expand(path), bamFilesSubDir, bamFileName, sep="/")
+  if (!file.exists(depthOutputFilePath) {
+    bamFileName <- paste0(sampleName, bamFileNamePostFix)
+    bamFilePath <- paste(path.expand(path), bamFilesSubDir, bamFileName, sep="/")
 
-  system2( samtoolsPathAndExecutable, c("depth", "-aa", bamFilePath), stdout=depthOutputFilePath, stderr=NULL )
-
+    system2( samtoolsPathAndExecutable, c("depth", "-aa", bamFilePath), stdout=depthOutputFilePath, stderr=NULL )
+  }
 
 
   #for (rowNum in 1:10)  

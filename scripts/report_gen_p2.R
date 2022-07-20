@@ -18,6 +18,12 @@ if (as.integer(args[6]) == 1) {
   HAS_INDELS <- FALSE
 }
 
+# (1) run the full pipeline
+# (2) just process the data and do not generate reports (ie. just run the first half of the pipeline), 
+# (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
+# (4) just generate reports beginning AFTER the filled_report.csv, assuming it has already been generated.
+WHAT_TO_RUN <- args[7]
+
 
 report <- data.frame()
 options(stringsAsFactors = FALSE, warn = 1)
@@ -38,25 +44,32 @@ library(VariantAnnotation)
 library(seqinr)
 
 # #######################################################################
-message(paste0("reading and merging split data --- ",Sys.time()))
-for(single1 in list.files(paste0(path, "/reporttemp")))
-{
-  if(grepl("filled.Rds", single1, fixed=TRUE))
+if(WHAT_TO_RUN == 4) {
+  # assume filled_report already exists
+  report <- read.csv(paste(path.expand(path),"reports","filled_report.csv",sep="/"),header=TRUE, check.names=FALSE)
+} 
+else {
+  # concat the files in reporttemp to make the filled_report.
+  message(paste0("reading and merging split data --- ",Sys.time()))
+  for(single1 in list.files(paste0(path, "/reporttemp")))
   {
-    #message(single1)
-    sr <- readRDS(paste0(path, "/reporttemp/", single1))
-    if(nrow(report) == 0 && ncol(report) == 0)
+    if(grepl("filled.Rds", single1, fixed=TRUE))
     {
-      report <- sr
-    }
-    else
-    {
-      report <- rbind(report, sr)
+      #message(single1)
+      sr <- readRDS(paste0(path, "/reporttemp/", single1))
+      if(nrow(report) == 0 && ncol(report) == 0)
+      {
+        report <- sr
+      }
+      else
+      {
+        report <- rbind(report, sr)
+      }
     }
   }
-}
 
-write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"), row.names=FALSE)
+  write.csv(report, paste(paste(path.expand(path), "reports", sep = "/"), "filled_report.csv", sep = "/"), row.names=FALSE)
+}
 
 # #######################################################################
 if(!("COMBINED" %in% colnames(report)))
