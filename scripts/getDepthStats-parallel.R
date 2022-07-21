@@ -121,7 +121,7 @@ parallelResults <- foreach (colNum=startingCol:ncol(mafReport)) %dopar% {
   depthOutputFileName <- paste0(sampleName, depthFileNamePostFix)
   depthOutputFilePath <- paste(path.expand(path), depthFilesSubDir, depthOutputFileName, sep="/")
 
-  if (!file.exists(depthOutputFilePath) {
+  if (!file.exists(depthOutputFilePath)) {
     bamFileName <- paste0(sampleName, bamFileNamePostFix)
     bamFilePath <- paste(path.expand(path), bamFilesSubDir, bamFileName, sep="/")
 
