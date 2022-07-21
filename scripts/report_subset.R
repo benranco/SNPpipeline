@@ -9,6 +9,9 @@ counter <- 1
 filecounter <- 1
 split <- 999
 
+numSubsets <- trunc(nrow(report)/split)+1
+numDigits <- floor(log10(numSubsets)) + 1 # this just counts the number of digits in a positive integer
+
 while(counter <= nrow(report)) {
   spl <- data.frame()
   if(counter + split > nrow(report)) {
@@ -17,7 +20,7 @@ while(counter <= nrow(report)) {
   else  {
     spl <- report[c(counter:(counter + split)), ]
   }
-  saveRDS(spl, file = paste0(path.expand(path), "/reporttemp/report_p", filecounter, ".Rds"))
+  saveRDS(spl, file = paste0(path.expand(path), "/reporttemp/report_p",  formatC(filecounter,width=numDigits,flag=0), ".Rds"))
   
   counter <- counter + split + 1
   filecounter <- filecounter + 1
