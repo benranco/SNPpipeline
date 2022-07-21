@@ -9,15 +9,12 @@ counter <- 1
 filecounter <- 1
 split <- 999
 
-while(counter <= nrow(report))
-{
+while(counter <= nrow(report)) {
   spl <- data.frame()
-  if(counter + split > nrow(report))
-  {
+  if(counter + split > nrow(report)) {
     spl <- report[c(counter:nrow(report)), ]
   }
-  else
-  {
+  else  {
     spl <- report[c(counter:(counter + split)), ]
   }
   saveRDS(spl, file = paste0(path.expand(path), "/reporttemp/report_p", filecounter, ".Rds"))

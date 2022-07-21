@@ -29,13 +29,11 @@ report <- data.frame()
 options(stringsAsFactors = FALSE, warn = 1)
 
 message(paste0("running report generation part 2 --- ",Sys.time()))
-if(!require(seqinr))
-{
+if(!require(seqinr)) {
   install.packages('seqinr', repos='http://cran.us.r-project.org')
 }
 
-if(!require(VariantAnnotation))
-{
+if(!require(VariantAnnotation)) {
   source("https://bioconductor.org/biocLite.R")
   biocLite("VariantAnnotation")
 }
@@ -51,18 +49,15 @@ if(WHAT_TO_RUN == 4) {
 else {
   # concat the files in reporttemp to make the filled_report.
   message(paste0("reading and merging split data --- ",Sys.time()))
-  for(single1 in list.files(paste0(path, "/reporttemp")))
-  {
-    if(grepl("filled.Rds", single1, fixed=TRUE))
-    {
+  for(single1 in list.files(paste0(path, "/reporttemp"))) {
+  
+    if(grepl("filled.Rds", single1, fixed=TRUE)) {
       #message(single1)
       sr <- readRDS(paste0(path, "/reporttemp/", single1))
-      if(nrow(report) == 0 && ncol(report) == 0)
-      {
+      if(nrow(report) == 0 && ncol(report) == 0) {
         report <- sr
       }
-      else
-      {
+      else {
         report <- rbind(report, sr)
       }
     }
@@ -72,12 +67,10 @@ else {
 }
 
 # #######################################################################
-if(!("COMBINED" %in% colnames(report)))
-{
+if(!("COMBINED" %in% colnames(report))) {
   startCol <- 4
   s <- 4 # we have both s and startCol because some legacy code used s as a variable name, and searching and replacing it would be tricky. Haven't done that yet.
-}else
-{
+} else {
   startCol <- 5
   s <- 5
 }
@@ -89,12 +82,11 @@ if(!("COMBINED" %in% colnames(report)))
 #         only one character long, but in the case where indels were not removed in the first
 #         part of the pipeline, an allele can have two or more characters.
 # returns: TRUE if the row has more than two alleles, FALSE if it only has two (or one) allele
-isRowNonBiallelic <- function(namesOfGenotypesInRow)
-{
+isRowNonBiallelic <- function(namesOfGenotypesInRow) {
+
   alleleIndex <- 1
   individualAlleles <- character(length(namesOfGenotypesInRow) * 2) # because, for example "A/A" has two alleles, "A/G" has two. If a type is of format "A/", this function will pretend it is in format "A/A" and count the single A twice. This is okay to do, because the count is only used internally to this function.
-  for ( type in namesOfGenotypesInRow )
-  {
+  for ( type in namesOfGenotypesInRow ) {
     allelesInType <- strsplit(type, "/")[[1]]
     individualAlleles[alleleIndex] <- allelesInType[1]
     alleleIndex <- alleleIndex + 1
@@ -111,11 +103,9 @@ message(paste0("editing for cutoffs --- ",Sys.time()))
   
 report <- as.data.frame(report)
 
-if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23 && !("COMBINED" %in% colnames(report))))
-{
+if((ncol(report) > 24 && "COMBINED" %in% colnames(report)) || (ncol(report) > 23 && !("COMBINED" %in% colnames(report)))) {
   doFullEditingForCutoffs <- TRUE
-}else
-{
+} else {
   doFullEditingForCutoffs <- FALSE
   message("not enough samples for full cutoff editing, just removing non-biallelic rows")
 }
@@ -129,26 +119,22 @@ rowsToRemove <- logical(numrows) # initializes all to FALSE
 
 numDataCols <- numColsInReport - (startCol - 1)
 
-for (curRow in 1:nrow(report)) 
-{
+for (curRow in 1:nrow(report)) {
   rowData <- as.matrix(report[curRow,startCol:numColsInReport]) 
   tabulatedRowData <- table(rowData, useNA = "no")
   tabulatedRowDataNames <- names(tabulatedRowData)
 
   # remove row if there's only one (or 0) type of non-NA data
-  if( length(tabulatedRowDataNames) <= 1 & doFullEditingForCutoffs)
-  {
+  if( length(tabulatedRowDataNames) <= 1 & doFullEditingForCutoffs)  {
     rowsToRemove[curRow] <- TRUE
   }
   # remove row if more than half of it's data values are NA
-  else if( sum(tabulatedRowData) < numDataCols %/% 2 & doFullEditingForCutoffs)
-  {
+  else if( sum(tabulatedRowData) < numDataCols %/% 2 & doFullEditingForCutoffs) {
     rowsToRemove[curRow] <- TRUE
   }
   # remove row if it has 3 or more unique alleles (eg. a row with A/A,A/C,C/C is kept, but 
   # a row with A/A,A/C,C/T is removed). We only keep biallelic data.
-  else if( isRowNonBiallelic(tabulatedRowDataNames) )
-  {
+  else if( isRowNonBiallelic(tabulatedRowDataNames) ) {
     rowsToRemove[curRow] <- TRUE
   }
 
@@ -169,8 +155,7 @@ tallyAllelesInFactoredRow <- function(factoredRow) {
   alleleSums$temp_col <- NULL # remove the temp_col, which was needed to initialize the dataframe to one row
   
   # count how many times each allele occurs    
-  for ( type in names(factoredRow) )
-  {
+  for ( type in names(factoredRow) ) {
     allelesInType <- strsplit(type, "/")[[1]]
     firstAllele <- allelesInType[1]
     if (firstAllele %in% names(alleleSums)) {
@@ -224,8 +209,7 @@ snpp$second_max <- integer(numRows)
 snpp$sum <- integer(numRows)
 snpp$MAF <- numeric(numRows)
 
-for(curRow in 1:nrow(report))
-{
+for(curRow in 1:nrow(report)) {
 
   rowAsMatrix <- as.matrix(report[curRow, s:numColsInReport])
   factoredGenotypes <- table(rowAsMatrix, useNA = "no")
@@ -291,8 +275,7 @@ message(paste0("generating site mutation percentage data --- ",Sys.time()))
 fastaRef <- read.fasta(file = paste(path.expand(path), "reference/formatted_output.fasta", sep = "/"), as.string = TRUE)
 mutationReport <- data.frame()
 
-for(sector in 1:length(names(fastaRef)))
-{
+for(sector in 1:length(names(fastaRef))) {
   sectorName <- attributes(fastaRef[[sector]])$name
   sectorNameRegEx <- paste0("^",sectorName,"$")
   numRowsForSectorName <- length(grep(sectorNameRegEx, report[, "CHROM"], fixed=FALSE))
@@ -347,18 +330,15 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
 
     numDataCols <- ncol(reportc) - (s-1)
 
-    for (curRow in 1:nrow(reportc))
-    {
+    for (curRow in 1:nrow(reportc)) {
       datap <- reportc[curRow, s:ncol(reportc)]
 
-      numNAsInRow <- sum(is.na(datap))
-      if( doExtraFiltering && numNAsInRow/numDataCols > 0.2 ) 
-      {
+      numNAsInRow <- sum(is.na(datap)) 
+      if( doExtraFiltering && numNAsInRow/numDataCols > 0.2 ) {
         # Remove the row if it has more than 20% NA's
         chiRowsToRemove[curRow] <- TRUE
       }
-      else
-      {
+      else {
         factoredRow <- sort(table(as.matrix(datap), useNA = "no"), decreasing = TRUE)
         totalAlleleCount <- sum(factoredRow)
         if (HAPLOID_OR_DIPLOID == 2) {
@@ -369,18 +349,15 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
         alleleSums <- tallyAllelesInFactoredRow(factoredRow)
         alleleSums <- sort(alleleSums, decreasing = TRUE)
         
-        if ( doExtraFiltering && alleleSums[1]/totalAlleleCount > 0.95 )
-        {
+        if ( doExtraFiltering && alleleSums[1]/totalAlleleCount > 0.95 ) {
           # Remove the row if the most frequent allele occurs more than 95% of the time
           chiRowsToRemove[curRow] <- TRUE
         }
-        else if ( doExtraFiltering && alleleSums[2]/totalAlleleCount < 0.05 )
-        {
+        else if ( doExtraFiltering && alleleSums[2]/totalAlleleCount < 0.05 ) {
           # Remove the row if the second most frequent allele occurs less than 5% of the time
           chiRowsToRemove[curRow] <- TRUE
         }
-        else 
-        {
+        else {
           # Process the row that we keep
           HType <- NA
           AType <- NA
@@ -400,34 +377,26 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
             HTypeOpt2 <- paste0(names(alleleSums)[2],"/",names(alleleSums)[1])
             HTypeOpt1Frequency <- 0
             HTypeOpt2Frequency <- 0
-            for (type in names(factoredRow))
-            {
-              if (type == HTypeOpt1)
-              {
-                if (is.na(HType)) 
-                { 
+            for (type in names(factoredRow)) {
+              if (type == HTypeOpt1) {
+                if (is.na(HType)) { 
                   HType <- HTypeOpt1 
                 }
                 HTypeOpt1Frequency <- factoredRow[type]
               }
-              else if (type == HTypeOpt2)
-              {
-                if (is.na(HType)) 
-                { 
+              else if (type == HTypeOpt2) {
+                if (is.na(HType)) { 
                   HType <- HTypeOpt2
                 }
                 HTypeOpt2Frequency <- factoredRow[type]
               }
             }
             # if HTypeOpt1Frequency and HTypeOpt2Frequency are tied, pick the one that starts with the REF
-            if ( HTypeOpt1Frequency > 0 & HTypeOpt1Frequency == HTypeOpt2Frequency )
-            {
-              if ( names(alleleSums)[1] == reportc[curRow, "REF"] )
-              {
+            if ( HTypeOpt1Frequency > 0 & HTypeOpt1Frequency == HTypeOpt2Frequency ) {
+              if ( names(alleleSums)[1] == reportc[curRow, "REF"] ) {
                 HType <- HTypeOpt1
               }
-              else if ( names(alleleSums)[2] == reportc[curRow, "REF"] )
-              {
+              else if ( names(alleleSums)[2] == reportc[curRow, "REF"] ) {
                 HType <- HTypeOpt2
               }
             }
@@ -437,16 +406,14 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
           secondAlleleIndex <- 2
           # if the first two alleles are tied in terms of frequency, choose the one that matches the REF
           # as the first one.    
-          if ( alleleSums[1] == alleleSums[2] & names(alleleSums)[2] == reportc[curRow, "REF"] ) 
-          {
+          if ( alleleSums[1] == alleleSums[2] & names(alleleSums)[2] == reportc[curRow, "REF"] ) {
             firstAlleleIndex <- 2
             secondAlleleIndex <- 1
           }
           
           # if there was no heterozygous site containing the two most frequent alleles,
           # such as would be the case for Haploid data:
-          if (is.na(HType))
-          {
+          if (is.na(HType)) {
             # haploid data is formatted like "G/", diploid like "G/G"
             # 1 == haploid, 2 == diploid.
             if (HAPLOID_OR_DIPLOID == 1) {
@@ -458,8 +425,7 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
               AType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
             }
           }
-          else
-          {
+          else {
             AType <- paste0(names(alleleSums)[firstAlleleIndex],"/",names(alleleSums)[firstAlleleIndex])
             BType <- paste0(names(alleleSums)[secondAlleleIndex],"/",names(alleleSums)[secondAlleleIndex])
           }
@@ -471,8 +437,7 @@ replaceSnpsWithChiCodes <- function(reportc, doExtraFiltering=FALSE) {
           H_Total[curRow] <- factoredRow[HType]
           A_Total[curRow] <- factoredRow[AType]
 
-          if (!is.na(BType))
-          {      
+          if (!is.na(BType)) {      
             reportc[curRow, s:ncol(reportc)] <- gsub(paste0("^",BType), "B", as.matrix(reportc[curRow, s:ncol(reportc)]), fixed = FALSE)
             B_Type[curRow] <- BType
             B_Total[curRow] <- factoredRow[BType]
@@ -587,8 +552,7 @@ if (HAS_INDELS) {
 # #######################################################################
 # The chi sq report, and the .linkage file derived from it, will only be 
 # generated if GENERATE_CHI_SQ_REPORT == 1
-if (GENERATE_CHI_SQ_REPORT == 1)
-{
+if (GENERATE_CHI_SQ_REPORT == 1) {
     message(paste0("replacing alleles with characters for chi square test, with extra filtering --- ",Sys.time()))
     reportcfiltered <- replaceSnpsWithChiCodes(report, doExtraFiltering=TRUE)
     write.csv(reportcfiltered, paste(paste(path.expand(path), "reports", sep = "/"), "MAF_cutoff_report_chi_extraFiltered.csv", sep = "/"), row.names=FALSE, na="-")    
@@ -604,8 +568,7 @@ if (GENERATE_CHI_SQ_REPORT == 1)
 
 # #######################################################################
 # The probability report will only be generated if GENERATE_PROBABILITY_REPORT == 1
-if (GENERATE_PROBABILITY_REPORT == 1)
-{
+if (GENERATE_PROBABILITY_REPORT == 1) {
 
     message(paste0("generate probability values --- ",Sys.time()))
 
@@ -613,21 +576,17 @@ if (GENERATE_PROBABILITY_REPORT == 1)
 
     startingCol <- ifelse(("COMBINED" %in% colnames(reportd)), s-1, s) # this makes sure we include the COMBINED col in our for loop if it exists
 
-    for(x in startingCol:ncol(reportd))
-    {
+    for(x in startingCol:ncol(reportd)) {
+    
       print(paste0("------------col ",x)) 
-      if(colnames(reportd)[x] == "COMBINED")
-      {
-        for(cutf in list.files(paste0(path, "/outputTemp/pooled")))
-        {
-          if(grepl("cutoff", cutf, fixed=TRUE))
-          {
+      if(colnames(reportd)[x] == "COMBINED") {
+        for(cutf in list.files(paste0(path, "/outputTemp/pooled"))) {
+          if(grepl("cutoff", cutf, fixed=TRUE)) {
             fil <- paste0(path, "/outputTemp/pooled/", cutf)
           }
         }
       }
-      else
-      {
+      else {
         fil <- paste0(path, "/outputTemp/single/", substr(colnames(reportd)[x], 0, nchar(colnames(reportd)[x]) - 4), "_cutoff")
       }
       # For documentation on the VariantAnnotation packaged used for scanVcf and related operations, see:
@@ -646,47 +605,39 @@ if (GENERATE_PROBABILITY_REPORT == 1)
       #     at 1, we will treat 0 as GL position 1, 1 as GL position 2, 2 as GL position 3. 
       ap <- scanVcf(fil) # import vcf file (see page 35 of http://bioconductor.org/packages/release/bioc/manuals/VariantAnnotation/man/VariantAnnotation.pdf)
       rr <- ap$`*:*-*`$rowRanges
-      for(y in 1:nrow(reportd))
-      {
+      for(y in 1:nrow(reportd)) {
+      
         ind <- NA
-        if(!is.na(reportd[y, x]))
-        {
+        if(!is.na(reportd[y, x])) {
           # Haploid data, and the character matches the REF.
           # In the case where the format is "A/" or "A" instead of "A/A", it is because the data is haploid.
           # If the character matches the REF, set the likelihood value to 1.
-          if(nchar(reportd[y,x]) <= 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
-          {
+          if(nchar(reportd[y,x]) <= 2 & strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] ) {
             reportd[y,x] <- 1
           }
           # Haploid data, and the character doesn't match the REF:
-          else if(nchar(reportd[y,x]) <= 2 & strsplit(reportd[y,x], "")[[1]][1] != reportd[y, "REF"] )
-          {
+          else if(nchar(reportd[y,x]) <= 2 & strsplit(reportd[y,x], "")[[1]][1] != reportd[y, "REF"] ) {
             # see comment below on the equivalent assignment of ind in the next else-if clause (in the
             # three character case):
             ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))
             
-            if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
-            {
+            if(!is.null(ind) && length(ind) > 0 && !is.na(ind)) {
               # Check the Genotype (GT) to determine which GL position to use.
               # Since this is haploid data, and we know already that it doesn't
               # match the REF, we expect the GT to be 1 (==ALT allele).
-              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1" ) # "1" means GL position 2
-              {
+              if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1" ) { # "1" means GL position 2
                 reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
               }
-              else # Just in case the GT is "0" (==REF allele), it means GL position 1
-              {
+              else { # Just in case the GT is "0" (==REF allele), it means GL position 1
                 reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
               }
             }
-            else # if ind is NA or null or has no value
-            {
+            else { # if ind is NA or null or has no value
               reportd[y,x] <- NA
             }
           }
           # three characters, eg. "A/A" or "A/T".
-          else if(nchar(reportd[y,x]) == 3)  
-          {
+          else if(nchar(reportd[y,x]) == 3) {
             # Set "ind" to the list of the indices of those row range names which contain both this row's "CHROM"
             # value and ":<this row's POS value>_". For our purposes, we only care about the first one in the
             # list if there are more than one. It'll be used to look up the Genotype Likelihood values for the
@@ -700,14 +651,11 @@ if (GENERATE_PROBABILITY_REPORT == 1)
             # rather than the elements themselves. It's the default, but it doesn't hurt to be specific). 
             ind <- intersect(grep(paste0(":", reportd[y, "POS"], "_"), names(rr), value=FALSE, fixed=TRUE), grep(reportd[y, "CHROM"], names(rr), value=FALSE, fixed=TRUE))
 
-            if(!is.null(ind) && length(ind) > 0 && !is.na(ind))
-            {
+            if(!is.null(ind) && length(ind) > 0 && !is.na(ind)) {
               # if the 1st and 3rd match each other:
-              if(strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3] )
-              {
+              if(strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3] ) {
                 # if they match the REF:
-                if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
-                {
+                if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] ) {
                   # (GL position 1)
                   reportd[y,x] <- 1
                   # TODO: Not yet sure if I just want to set it to 1 automatically here (as above), but if I 
@@ -715,58 +663,47 @@ if (GENERATE_PROBABILITY_REPORT == 1)
                   #reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][1]
                 }
                 # if they DON'T match the REF:
-                else 
-                {
+                else {
                   # Check the Genotype (GT) to determine which GL position to use
-                  if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1/1" ) # "1/1" means GL position 3
-                  {
+                  if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "1/1" ) { # "1/1" means GL position 3
                     reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][3]
                   }
-                  else # "2/2" means GL position 6
-                  {
+                  else { # "2/2" means GL position 6
                     reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][6]
                   }
                 }
               }     
               # if the 1st and 3rd DON'T match each other:
-              else
-              {
+              else {
                 # if the first character matches the REF:
-                if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] )
-                {
+                if(strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] ) {
                   # Check the Genotype (GT) todetermine which GL position to use
-                  if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "0/1" ) # "0/1" means GL position 2
-                  {
+                  if( as.list(ap$`*:*-*`$GENO$GT[ind])[[1]][1] == "0/1" ) { # "0/1" means GL position 2
                     reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][2]
                   }
-                  else # "0/2" means GL position 4
-                  {
+                  else { # "0/2" means GL position 4
                     reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][4]
                   }
                 }
                 # if the first character DOESN'T match match the REF:
-                else 
-                {
+                else {
                   # it must be GL position 5 (only possible for triallelic sites)
                   reportd[y, x] <- 10 ^ as.list(ap$`*:*-*`$GENO$GL[ind])[[1]][5]
                 }
               }
             }
-            else # if ind is NA or null or has no value
-            {
+            else { # if ind is NA or null or has no value
+
               # if the 1st and 3rd character match each other and match the REF
-              if( strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3])
-              {
+              if( strsplit(reportd[y,x], "")[[1]][1] == reportd[y, "REF"] & strsplit(reportd[y,x], "")[[1]][1] == strsplit(reportd[y,x], "")[[1]][3]) {
                 reportd[y,x] <- 1
               }
-              else
-              {
+              else {
                 reportd[y, x] <- NA
               }
             }
           } # end of 3 character cases
-          else
-          {
+          else {
             reportd[y, x] <- NA
           }
 

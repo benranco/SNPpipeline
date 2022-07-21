@@ -25,7 +25,7 @@ printErr <- function(command, err) {
 
 
 #################################################
-processTViewOut <- function(tview, rnum, cnum, ref){
+processTViewOut <- function(tview, rnum, cnum, ref) {
 
     isIndel <- (nchar(ref) > 1)
     
@@ -49,10 +49,8 @@ processTViewOut <- function(tview, rnum, cnum, ref){
       }
     }
     
-    if(substring(tview[2,1], 1 ,nchar(ref)) == ref)
-    {
-      if(nrow(tview) >= 3)
-      {
+    if(substring(tview[2,1], 1 ,nchar(ref)) == ref) {
+      if(nrow(tview) >= 3) {
         # The following logic is based on information from these two links: 
         # https://en.wikipedia.org/wiki/Pileup_format
         # https://en.wikipedia.org/wiki/Nucleic_acid_sequence
@@ -321,27 +319,22 @@ testProcessTViewOut <- function() {
 message(paste0("parallel_process: looking up NA data on ", file))
 report <- readRDS(paste0(path, "/reporttemp/", file))
 
-if(!("COMBINED" %in% colnames(report)))
-{
+if(!("COMBINED" %in% colnames(report))) {
   s <- 4
-}else 
-{
+} else {
   s <- 5
 }
 
 
 
-for(a in 1:nrow(report))
-{
+for(a in 1:nrow(report)) {
   reference <- report[a, "REF"]
 
 
-  if(s <= ncol(report))
-  {
-    for(b in s:ncol(report))
-    {
-      if(is.na(report[a,b]))
-      {
+  if(s <= ncol(report)) {
+    for(b in s:ncol(report)) {
+    
+      if(is.na(report[a,b])) {
         fn <- paste(substr(colnames(report)[b], 0 , nchar(colnames(report)[b]) - 4), 
                     "_sorted_markDup.bam", sep = "")
         cmd <- paste0(path, "/tools/samtools-1.3.1/samtools tview ", path ,"/dataTemp/single/", fn ,

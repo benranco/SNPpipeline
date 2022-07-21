@@ -57,8 +57,7 @@ samtoolsPathAndExecutable <- paste(path.expand(path), "tools/samtools-1.3.1/samt
 #   RO  = "Reference allele observation count, with partial observations recorded fractionally"
 #   AO  = "Alternate allele observations, with partial observations recorded fractionally"
 ###########################################################
-if(!require(doParallel))
-{
+if(!require(doParallel)) {
   install.packages('doParallel', repos='http://cran.us.r-project.org')
 }  
 library(doParallel)  
@@ -66,8 +65,7 @@ library(doParallel)
 
 # determine the number of cores we can use for parallel processing
 ncore <- as.numeric(system2( "grep", c("-c", "^processor", "/proc/cpuinfo"), stdout=TRUE, stderr=NULL ))
-if (ncore > 1)
-{
+if (ncore > 1) {
   ncore <- ncore - 1 # leave some processor cores free for other applications
 }
 write(paste0("Number of cores to use for parallel processing: ",ncore), stdout())
@@ -79,15 +77,13 @@ mafReport <- read.csv(paste(path.expand(path),reportsSubDir,inputMAFcutoffReport
 
 
 # check if first col is not CHROM, and remove it if so (it's just a left-over old index column if it exists)
-if (colnames(mafReport)[1] != "CHROM")
-{
+if (colnames(mafReport)[1] != "CHROM") {
   mafReport <- mafReport[,-1]
 }
 
 startingCol <- 4
 # check if COMBINED col exists, and adjust starting col num 
-if (colnames(mafReport)[4] == "COMBINED")
-{
+if (colnames(mafReport)[4] == "COMBINED") {
   startingCol <- 5
 }
 
@@ -109,8 +105,7 @@ parallelResults <- foreach (colNum=startingCol:ncol(mafReport)) %dopar% {
   columnB <- columnA
 
   sampleName <- colnames(mafReport)[colNum]
-  if ( substr(sampleName, nchar(sampleName)-3, nchar(sampleName)) == ".tab" )
-  {
+  if ( substr(sampleName, nchar(sampleName)-3, nchar(sampleName)) == ".tab" )   {
     sampleName <- paste0( substr(sampleName, 1, nchar(sampleName)-4) )
   }
 
@@ -130,8 +125,7 @@ parallelResults <- foreach (colNum=startingCol:ncol(mafReport)) %dopar% {
 
 
   #for (rowNum in 1:10)  
-  for (rowNum in 1:nrow(mafChromAndPos))
-  {
+  for (rowNum in 1:nrow(mafChromAndPos)) {
     sequenceName <- mafChromAndPos[rowNum,1]
     position <- mafChromAndPos[rowNum,2]
     dp <- NA
@@ -141,8 +135,8 @@ parallelResults <- foreach (colNum=startingCol:ncol(mafReport)) %dopar% {
     # get data from vcf file
     #vcfLine <- system( paste0("grep \"^",sequenceName,"\\s",position,"\\s\" ", vcfFilePath), intern=TRUE)
     vcfLine <- system2( "grep", c(paste0("\"^",sequenceName,"\\s",position,"\\s\""), vcfFilePath), stdout=TRUE, stderr=NULL )
-    if (length(vcfLine) == 1) # if there is one line in vcfLine
-    { 
+    if (length(vcfLine) == 1) { # if there is one line in vcfLine
+     
       # extract the DP, DPB, AO, and RO data from the line
 
       # remove everything preceding the value we want to extract
@@ -157,12 +151,11 @@ parallelResults <- foreach (colNum=startingCol:ncol(mafReport)) %dopar% {
       ao <- sub(";.*", "", ao)
       ro <- sub(";.*", "", ro)      
     } 
-    else if (length(vcfLine) == 0) # if the data is not found in the vcf file
-    {
+    else if (length(vcfLine) == 0) { # if the data is not found in the vcf file
+    
       # get data from the depth file
       depthLine <- system2( "grep", c(paste0("\"^",sequenceName,"\\s",position,"\\s\""), depthOutputFilePath), stdout=TRUE, stderr=NULL )
-      if (length(depthLine) == 1)
-      {
+      if (length(depthLine) == 1) {
         dp <- strsplit(depthLine, "\\s")[[1]][3]
       }
     }
@@ -186,8 +179,7 @@ write(paste0("Combining individual depth columns into one table."), stdout())
 table1 <- mafReport[ , 1:startingCol-1]
 table2 <- table1
 
-for (i in 1:length(parallelResults))
-{
+for (i in 1:length(parallelResults)) {
   table1 <- cbind(table1, parallelResults[[i]][1])
   table2 <- cbind(table2, parallelResults[[i]][2])
 }
