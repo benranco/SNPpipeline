@@ -112,7 +112,7 @@ datapoints=$(ls "./data" \
 }
 
 
-./scripts/setup.sh $what_to_run
+./scripts/setup.sh $what_to_run $generate_probability_report
 # if setup had a bad exit code, abort the pipeline
 if [ $? -gt 0 ]
 then

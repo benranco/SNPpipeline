@@ -7,12 +7,13 @@ echo "running setup.sh"
 # (3) just generate reports based on data that has already been processed by the first half of the pipeline (ie. just run the second half of the pipeline assuming the first half has already been run).
 # (4) just generate reports beginning AFTER the filled_report.csv, assuming it has already been generated.
 what_to_run=$1
+generate_probability_report=$2
 
 exitCode=0
 
 if [[ what_to_run -ne 2 ]]
 then
-    sudo Rscript ./scripts/install_R_packages.R
+    Rscript ./scripts/install_R_packages.R $generate_probability_report
     exitCode=$?
 fi
 
