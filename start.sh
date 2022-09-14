@@ -12,7 +12,7 @@ paired=1
 single=1
 
 #ploidy values for single and pooled runs: (1) haploid, (2) diploid
-singleploidy=1
+singleploidy=2
 pooledploidy=2
 
 
